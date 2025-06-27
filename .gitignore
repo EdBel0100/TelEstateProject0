@@ -1,0 +1,40 @@
+# Root
+node_modules/
+.pnpm/
+.env
+.env.local
+.env.*.local
+*.log
+*.lock
+*.DS_Store
+dist/
+build/
+.next/
+out/
+coverage/
+.vscode/
+
+# OS
+Thumbs.db
+ehthumbs.db
+.DS_Store
+Icon?
+Desktop.ini
+
+# Frontend
+/frontend/.next/
+/frontend/node_modules/
+/frontend/out/
+/frontend/.env*
+/frontend/package-lock.json
+/frontend/pnpm-lock.yaml
+/frontend/yarn.lock
+
+# Backend
+/backend/.next/
+/backend/node_modules/
+/backend/out/
+/backend/.env*
+/backend/package-lock.json
+/backend/pnpm-lock.yaml
+/backend/yarn.lock

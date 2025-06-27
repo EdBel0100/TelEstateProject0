@@ -1,0 +1,12 @@
+{
+    "name": "tel-estate",
+    "private": true,
+    "workspaces": ["frontend", "backend"],
+    "scripts": {
+        "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend start:dev\""
+      },
+    "devDependencies": {
+      "concurrently": "^8.2.2"
+    }
+  }
+  
