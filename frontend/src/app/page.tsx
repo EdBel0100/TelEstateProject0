@@ -1,5 +1,5 @@
-import Navbar from "@/components/Navbar";
-import Landing from "./(nondashboard)/landing/page";
+import Navbar from "@/components/devui/Navbar";
+import Landing from "./(public)/landing/page";
 
 export default function Home() {
   return (
