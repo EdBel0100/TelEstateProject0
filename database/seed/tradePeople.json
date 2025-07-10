@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "cognitoId": "trade-1",
+    "phone": "555-222-2221",
+    "email": "trade1@example.com",
+    "address": "123 Trade St",
+    "companyName": "FixIt Plumbing",
+    "service": "Plumbing",
+    "landlordCognitoId": "landlord-1"
+  },
+  {
+    "id": 2,
+    "cognitoId": "trade-2",
+    "phone": "555-222-2222",
+    "email": "trade2@example.com",
+    "address": "456 Trade Ave",
+    "companyName": "Repair Guys",
+    "service": "Electric",
+    "landlordCognitoId": "landlord-2"
+  },
+  {
+    "id": 3,
+    "cognitoId": "trade-3",
+    "phone": "555-222-2223",
+    "email": "trade3@example.com",
+    "address": "789 Trade Blvd",
+    "companyName": "FixAll Inc.",
+    "service": "General Maintenance",
+    "landlordCognitoId": "landlord-3"
+  }
+]

@@ -56,12 +56,17 @@ export function SideBar() {
     },
     {
       label: "Payments",
-      href: "#",
+      href: "/tenantPayments",
       icon: <IconCreditCard className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
     },
     {
       label: "Messaging",
-      href: "#",
+      href: "/tenantsmessaging",
+      icon: <IconMessageCircle className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
+    },
+    {
+      label: "Tickets",
+      href: "/tenantstickets",
       icon: <IconMessageCircle className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
     },
   ];

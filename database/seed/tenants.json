@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "cognitoId": "tenant-1",
+    "name": "Tenant One",
+    "email": "tenant1@example.com",
+    "phoneNumber": "555-111-1111"
+  },
+  {
+    "id": 2,
+    "cognitoId": "tenant-2",
+    "name": "Tenant Two",
+    "email": "tenant2@example.com",
+    "phoneNumber": "555-111-1112"
+  },
+  {
+    "id": 3,
+    "cognitoId": "tenant-3",
+    "name": "Tenant Three",
+    "email": "tenant3@example.com",
+    "phoneNumber": "555-111-1113"
+  }
+]

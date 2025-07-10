@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"  
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Landlord {
+  id          Int          @id @default(autoincrement())
+  cognitoId   String       @unique
+  name        String
+  email       String
+  phoneNumber String
+
+  properties   Property[]
+  buildings    Building[]
+  tradespeople TradePerson[]
+  conversations Conversation[]
+}
+
+model Tenant {
+  id          Int          @id @default(autoincrement())
+  cognitoId   String       @unique
+  name        String
+  email       String
+  phoneNumber String
+
+  properties   Property[]
+  conversations Conversation[]
+}
+
+model TradePerson {
+  id               Int      @id @default(autoincrement())
+  cognitoId        String   @unique
+  phone            String
+  email            String
+  address          String
+  companyName      String
+  service          String
+  landlordCognitoId String
+
+  landlord Landlord @relation(fields: [landlordCognitoId], references: [cognitoId])
+  conversations Conversation[]
+}
+
+model Location {
+  id         Int    @id @default(autoincrement())
+  address    String
+  city       String
+  state      String
+  country    String
+  postalCode String
+  // coordinates Unsupported – Prisma doesn't support geometry natively, can use @db.Geography if using PostGIS
+
+  buildings Building[]
+}
+
+model Building {
+  id                Int       @id @default(autoincrement())
+  name              String
+  photosUrl         String
+  typeOfBuilding    String
+  numberOfProperty  Int
+  landlordCognitoId String
+  locationId        Int
+
+  landlord Landlord @relation(fields: [landlordCognitoId], references: [cognitoId])
+  location Location @relation(fields: [locationId], references: [id])
+  properties Property[]
+}
+
+model Property {
+  id                Int       @id @default(autoincrement())
+  apartmentNumber   String?
+  unitNumber        String?
+  numberOfRooms     Int
+  numberOfBathrooms Int
+  size              Float
+  buildingId        Int
+  tenantsCognitoId  String
+  landlordCognitoId String
+
+  building Building @relation(fields: [buildingId], references: [id])
+  tenant   Tenant   @relation(fields: [tenantsCognitoId], references: [cognitoId])
+  landlord Landlord @relation(fields: [landlordCognitoId], references: [cognitoId])
+  tickets  Tickets[]
+  lease    LEASE?
+  payment  PAYMENT[]
+}
+
+model Tickets {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      String   // consider using enum: URGENT | CONCERNING | WARNING
+  submittedAt DateTime
+  propertyId  Int
+
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+model LEASE {
+  id         Int      @id @default(autoincrement())
+  startDate  DateTime
+  endDate    DateTime
+  deposit    Float
+  propertyId Int      @unique
+
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+model PAYMENT {
+  id             Int      @id @default(autoincrement())
+  amountDue      Float
+  amountPaid     Float
+  dueDate        DateTime
+  paymentDate    DateTime
+  paymentStatus  String
+  leased         Int
+
+  property Property @relation(fields: [leased], references: [id])
+}
+
+model Conversation {
+  id                Int           @id @default(autoincrement())
+  name              String
+  landlordCognitoId String
+  tenantCognitoId   String?
+  tradePersonCognitoId String?
+
+  landlord   Landlord?    @relation(fields: [landlordCognitoId], references: [cognitoId])
+  tenant     Tenant?       @relation(fields: [tenantCognitoId], references: [cognitoId])
+  tradePerson TradePerson? @relation(fields: [tradePersonCognitoId], references: [cognitoId])
+  messages   Messages[]
+}
+
+model Messages {
+  id              Int      @id @default(autoincrement())
+  senderType      String   // enum: landlord | tenant
+  senderCognitoId String
+  content         String
+  createdAt       DateTime
+  conversationId  Int
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+}
+

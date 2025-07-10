@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "senderType": "landlord",
+    "senderCognitoId": "landlord-1",
+    "content": "Hello tenant 1, how can I help?",
+    "createdAt": "2025-07-01T12:00:00.000Z",
+    "conversationId": 1
+  },
+  {
+    "id": 2,
+    "senderType": "tenant",
+    "senderCognitoId": "tenant-1",
+    "content": "I have a leaking faucet in my apartment.",
+    "createdAt": "2025-07-01T12:05:00.000Z",
+    "conversationId": 1
+  },
+  {
+    "id": 3,
+    "senderType": "tradePerson",
+    "senderCognitoId": "trade-1",
+    "content": "I will be there tomorrow to fix it.",
+    "createdAt": "2025-07-01T12:10:00.000Z",
+    "conversationId": 1
+  }
+]

@@ -38,3 +38,6 @@ Desktop.ini
 /backend/package-lock.json
 /backend/pnpm-lock.yaml
 /backend/yarn.lock
+
+# Database 
+/database/generated
