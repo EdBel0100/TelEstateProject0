@@ -11,7 +11,8 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@database/generated": ["../database/generated"]
+      "@database/generated": ["../database/generated"],
+      "@guards/*": ["src/guards/*"],
     },
     "incremental": true,
     "skipLibCheck": true,

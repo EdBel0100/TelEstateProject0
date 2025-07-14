@@ -18,7 +18,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@database/generated": ["../database/generated"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": [],

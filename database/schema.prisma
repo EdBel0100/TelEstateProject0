@@ -13,8 +13,9 @@ datasource db {
 model Landlord {
   id          Int          @id @default(autoincrement())
   cognitoId   String       @unique
-  name        String
   email       String
+  firstName        String
+  lastName         String
   phoneNumber String
 
   properties   Property[]
@@ -26,8 +27,9 @@ model Landlord {
 model Tenant {
   id          Int          @id @default(autoincrement())
   cognitoId   String       @unique
-  name        String
   email       String
+  firstName        String
+  lastName         String
   phoneNumber String
 
   properties   Property[]
@@ -38,6 +40,8 @@ model TradePerson {
   id               Int      @id @default(autoincrement())
   cognitoId        String   @unique
   phone            String
+  firstName        String
+  lastName         String
   email            String
   address          String
   companyName      String

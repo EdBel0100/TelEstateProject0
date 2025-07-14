@@ -3,10 +3,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { MessagesModule } from './messages/messages.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { AuthModule } from "./auth/auth.module"
+import { JwtStrategy } from './auth/jwt.strategy';
+import { TenantModule } from './tenant/tenant.module';
+import { TradepersonModule } from './tradeperson/tradeperson.module';
+import { ManagerModule } from './manager/manager.module';
+
 
 @Module({
-  imports: [DatabaseModule, TicketsModule],
+  imports: [DatabaseModule, TicketsModule, MessagesModule, ConversationsModule, AuthModule, TenantModule, TradepersonModule, ManagerModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JwtStrategy],
 })
 export class AppModule {}

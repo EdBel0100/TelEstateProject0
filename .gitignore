@@ -40,4 +40,6 @@ Desktop.ini
 /backend/yarn.lock
 
 # Database 
-/database/generated
+database/node_modules/
+/database/.env*
+database/generated/
