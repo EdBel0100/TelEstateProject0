@@ -1,87 +1,70 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { Prisma } from '@database/generated';
+import { CreateTicketForTenantDto } from '@DTO/ticket-dto/ticket-create-for-tenants.dto';
+
 
 @Injectable()
 export class TicketsService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async create(createTicketDto: Prisma.TicketsCreateInput) {
+  
+  async CreateForTenant(createTicketDto: CreateTicketForTenantDto) {
+    // Find property based on tenant cognito id
+    const property = await this.databaseService.property.findFirst({
+      where: {
+        tenants: {
+          some: {
+            cognitoId: createTicketDto.tenantCognitoId,
+          },
+        },
+      },
+    });
+  
+    if (!property) {
+      throw new Error("No property found for tenant");
+    }
+  
+    // Create ticket linked to found property
     return this.databaseService.tickets.create({
-      data: createTicketDto,
-    });
-  }
-
-  async findAll() {
-    return this.databaseService.tickets.findMany({});
-  }
-
-  async findManyByLandlord(landlordCognitoId: string) {
-    return this.databaseService.tickets.findMany({
-      where: {
+      data: {
+        title: createTicketDto.title,
+        description: createTicketDto.description,
+        status: createTicketDto.status,
+        submittedAt: new Date(createTicketDto.submittedAt),
         property: {
-          landlord: {
-            cognitoId: landlordCognitoId,
-          },
-        },
-      },
-      include: {
-        property: {
-          include: {
-            landlord: true,
-          },
-        },
-      },
-    });
-  }
-
-  async findManyByBuilding(buildingName: string) {
-    return this.databaseService.tickets.findMany({
-      where: {
-        AND: [
-          {
-            property: {
-              building: {
-                name: buildingName,
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        property: {
-          include: {
-            landlord: true,
-            building: true,
-          },
+          connect: { id: property.id },
         },
       },
     });
   }
   
 
-  async findOne(id: number) {
-    return this.databaseService.tickets.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
 
-  async update(id: number, updateTicketDto: Prisma.TicketsUpdateInput) {
-    return this.databaseService.tickets.update({
+  async findManyByManager(ManagerCognitoId: string) {
+    return this.databaseService.tickets.findMany({
       where: {
-        id
+        property: {
+          manager: {
+            cognitoId: ManagerCognitoId,
+          },
+        },
       },
-      data: updateTicketDto
-    });
-  }
-
-  remove(id: number) {
-    return this.databaseService.tickets.delete({
-      where:{
-        id
-      }
+      include: {
+        property: {
+          include: {
+            manager: true,
+            building: {
+              include:{
+                location:true
+              }
+            },
+          },
+        },
+      },
     });
   }
 }
+  
+
+ 

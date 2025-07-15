@@ -1,49 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards, Logger } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
-import { Prisma } from '@database/generated';
+import { CreateTicketForTenantDto } from '@DTO/ticket-dto/ticket-create-for-tenants.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { Request } from 'express';
+
 
 @Controller('tickets/')
 export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
-
-  //Creates a new ticket
-  @Post()
-  create(@Body() createTicketDto: Prisma.TicketsCreateInput) {
-    return this.ticketsService.create(createTicketDto);
+  @UseGuards(AuthGuard)
+  @Post("tenant")
+  async CreateForTenant(
+    @Body() createTicketDto: CreateTicketForTenantDto,
+    @Req() req: Request,
+  ) {
+    Logger.log("Authenticated User:", req.user); 
+    return this.ticketsService.CreateForTenant(createTicketDto);
   }
 
-  //Gets all the tickets from the database
-  @Get("all")
-  findAll() {
-    return this.ticketsService.findAll();
-  }
-
-  //gets all one ticket from the database
-  @Get('one/:id')
-  findOne(@Query('id') id: number) {
-    return this.ticketsService.findOne(+id);
-  }
 
   //gets all tickets attached to a landlord
-  @Get('landlord')
+  @Get('manager')
   findManyByLandlord(@Query('landlordCognitoId') landlordCognitoId:string) {
-    return this.ticketsService.findManyByLandlord(landlordCognitoId)
+    return this.ticketsService.findManyByManager(landlordCognitoId)
   }
 
-  //gets all tickets attached to a building
-  @Get('bulding')
-  findManyByBuilding(@Query('buildingName') buildingName:string) {
-    return this.ticketsService.findManyByLandlord(buildingName)
-  }
-  //change a ticket
-  @Patch(':id')
-  update(@Param('id') id: number, @Body() updateTicketDto: Prisma.TicketsUpdateInput) {
-    return this.ticketsService.update(+id, updateTicketDto);
-  }
-  //deletes a ticket
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ticketsService.remove(+id);
-  }
 }

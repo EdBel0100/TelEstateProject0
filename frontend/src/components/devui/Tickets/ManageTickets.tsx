@@ -1,70 +1,60 @@
 "use client";
-//here is what i need here 
-//1) The shared state for the tickets
-//2) the logic for telling the backend to delete a specific card after marked as delt with 
-//3) On render we want to fetch the data from the backend to display the cards
 
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { useUser } from "@/hooks/useUser";
+import { useGetTicketsByManagerQuery } from "@/state/api";
 import { TicketCard } from "./TicketCard";
-import { Ticket } from "./types";
+import { TicketByLandlordDto } from "./types";
 
-const initialTickets: Ticket[] = [
-  {
-    id: "1",
-    user: "John Doe",
-    building: "123 Main St",
-    submittedAt: "2025-07-01T09:30:00Z",
-    status: "urgent",
-    title: "Leaking Pipe - Apt 301",
-    description: "There's a major leak under the kitchen sink.",
-    dealtWith: false,
-  },
-  {
-    id: "2",
-    user: "Jane Smith",
-    building: "456 Park Ave",
-    submittedAt: "2025-07-01T10:15:00Z",
-    status: "concerning",
-    title: "Heating Issue - Apt 102",
-    description: "Radiators aren't heating up properly.",
-    dealtWith: false,
-  },
-  {
-    id: "3",
-    user: "Tom Johnson",
-    building: "789 Elm St",
-    submittedAt: "2025-07-01T08:50:00Z",
-    status: "warning",
-    title: "Window Jammed - Apt 404",
-    description: "Bedroom window won’t close completely.",
-    dealtWith: false,
-  },
-  // Add more as needed...
-];
+type Status = "urgent" | "concerning" | "warning";
 
-export const ManageTickets = () => {
-  const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
+export const ManageTickets: React.FC = () => {
+  const user = useUser();
+  const managerCognitoId = user?.username;
 
-  const handleDealWith = (id: string) => {
-    setTickets((prev) =>
-      prev.map((ticket) =>
-        ticket.id === id ? { ...ticket, dealtWith: true } : ticket
-      )
-    );
+  const { data, error, isLoading } = useGetTicketsByManagerQuery(
+    { managerCognitoId: managerCognitoId! },
+    { skip: !managerCognitoId }
+  );
+
+  const ticketsArray = Array.isArray(data) ? data : [];
+  const [dealtWithMap, setDealtWithMap] = useState<Record<number, boolean>>({});
+  const handleDealWith = (id: number) => {
+    setDealtWithMap((prev) => ({ ...prev, [id]: true }));
   };
 
-  // Sort: non-dealtWith first, then dealtWith
-  const sortedTickets = [...tickets].sort((a, b) => {
-    if (a.dealtWith === b.dealtWith) {
-      // If same dealtWith status, sort by severity then time
-      const statusOrder = { urgent: 0, concerning: 1, warning: 2 };
-      if (statusOrder[a.status] !== statusOrder[b.status]) {
-        return statusOrder[a.status] - statusOrder[b.status];
+  const ticketsWithDealtWith = useMemo(() => {
+    return ticketsArray.map((t: TicketByLandlordDto) => ({
+      ...t,
+      dealtWith: dealtWithMap[t.id] ?? false,
+    }));
+  }, [ticketsArray, dealtWithMap]);
+
+  const statusOrder: Record<Status, number> = {
+    urgent: 0,
+    concerning: 1,
+    warning: 2,
+  };
+
+  const sortedTickets = useMemo(() => {
+    return [...ticketsWithDealtWith].sort((a, b) => {
+      if (a.dealtWith === b.dealtWith) {
+        const aStatus = a.status as Status;
+        const bStatus = b.status as Status;
+        if (aStatus in statusOrder && bStatus in statusOrder) {
+          if (statusOrder[aStatus] !== statusOrder[bStatus]) {
+            return statusOrder[aStatus] - statusOrder[bStatus];
+          }
+        }
+        return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
       }
-      return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
-    }
-    return a.dealtWith ? 1 : -1; // push dealtWith to bottom
-  });
+      return a.dealtWith ? 1 : -1;
+    });
+  }, [ticketsWithDealtWith]);
+
+  if (!managerCognitoId) return <div className="text-red-500">User not found</div>;
+  if (isLoading) return <div>Loading tickets...</div>;
+  if (error) return <div className="text-red-500">Error loading tickets</div>;
 
   return (
     <div className="flex flex-col space-y-4">

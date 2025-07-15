@@ -9,8 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-model Landlord {
+model Manager {
   id          Int          @id @default(autoincrement())
   cognitoId   String       @unique
   email       String
@@ -25,14 +24,16 @@ model Landlord {
 }
 
 model Tenant {
-  id          Int          @id @default(autoincrement())
-  cognitoId   String       @unique
+  id          Int      @id @default(autoincrement())
+  cognitoId   String   @unique
   email       String
-  firstName        String
-  lastName         String
+  firstName   String
+  lastName    String
   phoneNumber String
 
-  properties   Property[]
+  propertyId  Int?     // Remove @unique
+  property    Property? @relation(fields: [propertyId], references: [id])
+
   conversations Conversation[]
 }
 
@@ -46,9 +47,9 @@ model TradePerson {
   address          String
   companyName      String
   service          String
-  landlordCognitoId String
+  managerCognitoId String
 
-  landlord Landlord @relation(fields: [landlordCognitoId], references: [cognitoId])
+  manager Manager @relation(fields: [managerCognitoId], references: [cognitoId])
   conversations Conversation[]
 }
 
@@ -70,10 +71,10 @@ model Building {
   photosUrl         String
   typeOfBuilding    String
   numberOfProperty  Int
-  landlordCognitoId String
+  managerCognitoId String
   locationId        Int
 
-  landlord Landlord @relation(fields: [landlordCognitoId], references: [cognitoId])
+  manager Manager @relation(fields: [managerCognitoId], references: [cognitoId])
   location Location @relation(fields: [locationId], references: [id])
   properties Property[]
 }
@@ -81,21 +82,21 @@ model Building {
 model Property {
   id                Int       @id @default(autoincrement())
   apartmentNumber   String?
-  unitNumber        String?
   numberOfRooms     Int
   numberOfBathrooms Int
   size              Float
   buildingId        Int
-  tenantsCognitoId  String
-  landlordCognitoId String
+  managerCognitoId  String
 
   building Building @relation(fields: [buildingId], references: [id])
-  tenant   Tenant   @relation(fields: [tenantsCognitoId], references: [cognitoId])
-  landlord Landlord @relation(fields: [landlordCognitoId], references: [cognitoId])
+  manager  Manager  @relation(fields: [managerCognitoId], references: [cognitoId])
   tickets  Tickets[]
-  lease    LEASE?
-  payment  PAYMENT[]
+  lease    Lease?
+  payment  Payment[]
+
+  tenants  Tenant[]   // Changed from `tenant Tenant?` to many tenants
 }
+
 
 model Tickets {
   id          Int      @id @default(autoincrement())
@@ -108,7 +109,7 @@ model Tickets {
   property Property @relation(fields: [propertyId], references: [id])
 }
 
-model LEASE {
+model Lease {
   id         Int      @id @default(autoincrement())
   startDate  DateTime
   endDate    DateTime
@@ -118,7 +119,7 @@ model LEASE {
   property Property @relation(fields: [propertyId], references: [id])
 }
 
-model PAYMENT {
+model Payment {
   id             Int      @id @default(autoincrement())
   amountDue      Float
   amountPaid     Float
@@ -133,11 +134,11 @@ model PAYMENT {
 model Conversation {
   id                Int           @id @default(autoincrement())
   name              String
-  landlordCognitoId String
+  managerCognitoId String
   tenantCognitoId   String?
   tradePersonCognitoId String?
 
-  landlord   Landlord?    @relation(fields: [landlordCognitoId], references: [cognitoId])
+  manager   Manager?    @relation(fields: [managerCognitoId], references: [cognitoId])
   tenant     Tenant?       @relation(fields: [tenantCognitoId], references: [cognitoId])
   tradePerson TradePerson? @relation(fields: [tradePersonCognitoId], references: [cognitoId])
   messages   Messages[]
@@ -145,7 +146,7 @@ model Conversation {
 
 model Messages {
   id              Int      @id @default(autoincrement())
-  senderType      String   // enum: landlord | tenant
+  senderType      String   // enum: manager | tenant
   senderCognitoId String
   content         String
   createdAt       DateTime

@@ -10,12 +10,12 @@ import {
 import { ManagerService } from './manager.service';
 import { Prisma } from '@database/generated';
 
-@Controller('landlord')
+@Controller('manager')
 export class ManagerController {
   constructor(private readonly managerService: ManagerService) {}
 
   @Post()
-  create(@Body() createManagerDto: Prisma.LandlordCreateInput) {
+  create(@Body() createManagerDto: Prisma.ManagerCreateInput) {
     return this.managerService.create(createManagerDto);
   }
 
@@ -39,7 +39,7 @@ export class ManagerController {
   @Patch(':id')
   update(
     @Param('id') id: number,
-    @Body() updateManagerDto: Prisma.LandlordUpdateInput
+    @Body() updateManagerDto: Prisma.ManagerUpdateInput
   ) {
     return this.managerService.update(id, updateManagerDto);
   }

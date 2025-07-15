@@ -1,20 +1,19 @@
-//will need redux to share the state when marked as done between manage ticket and ticketcard
+import React from "react";
+import { TicketByLandlordDto } from "./types";
 
-import { Ticket } from "./types";
-
-interface Props {
-  ticket: Ticket;
-  onDealWith: (id: string) => void;
+interface TicketCardProps {
+  ticket: TicketByLandlordDto & { dealtWith?: boolean };
+  onDealWith: (id: number) => void;
 }
 
-export const TicketCard = ({ ticket, onDealWith }: Props) => {
+export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onDealWith }) => {
   const statusColors = {
     urgent: "bg-red-500",
     concerning: "bg-orange-400",
     warning: "bg-yellow-400",
-  };
+  } as const;
 
-  const statusColor = statusColors[ticket.status];
+  const statusColor = statusColors[ticket.status as keyof typeof statusColors];
 
   return (
     <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-md p-4 border border-neutral-200 dark:border-neutral-700">
@@ -28,15 +27,19 @@ export const TicketCard = ({ ticket, onDealWith }: Props) => {
       </div>
       <h3 className="font-semibold">{ticket.title}</h3>
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{ticket.description}</p>
+
       <p className="text-xs text-gray-500">
-        <strong>Submitted by:</strong> {ticket.user}
+        <strong>Apartment:</strong> {ticket.property.apartmentNumber}
       </p>
+
       <p className="text-xs text-gray-500">
-        <strong>Building:</strong> {ticket.building}
-      </p>
+  <strong>Building Address:</strong> {ticket.property.building.location.address}
+</p>
+
       <p className="text-xs text-gray-400">
-        <strong>Time:</strong> {new Date(ticket.submittedAt).toLocaleString()}
+        <strong>Submitted:</strong> {new Date(ticket.submittedAt).toLocaleString()}
       </p>
+
       {!ticket.dealtWith && (
         <button
           onClick={() => onDealWith(ticket.id)}

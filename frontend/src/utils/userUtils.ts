@@ -1,13 +1,19 @@
-import { CognitoUserPool } from "amazon-cognito-identity-js";
-import { CognitoUserSession } from "amazon-cognito-identity-js";
-import { CognitoUserAttribute } from "amazon-cognito-identity-js";
+import {
+  CognitoUserPool,
+  CognitoUserSession,
+  CognitoUserAttribute,
+} from "amazon-cognito-identity-js";
 
 const pool = new CognitoUserPool({
   UserPoolId: process.env.NEXT_PUBLIC_AWS_COGNITO_USER_POOL_ID!,
   ClientId: process.env.NEXT_PUBLIC_AWS_COGNITO_USER_POOL_CLIENT_ID!,
 });
 
-export const getUserType = (): Promise<string> =>
+// Get full user info incl. attributes as a Promise
+export const getUser = (): Promise<{
+  username: string;
+  attributes: Record<string, string>;
+}> =>
   new Promise((resolve, reject) => {
     const user = pool.getCurrentUser();
     if (!user) return reject(new Error("No user"));
@@ -18,19 +24,28 @@ export const getUserType = (): Promise<string> =>
       user.getUserAttributes((err?: Error | null, attrs?: CognitoUserAttribute[] | null) => {
         if (err || !attrs) return reject(err ?? new Error("Failed to get attributes"));
 
-        const role = attrs.find(a => a.getName() === "custom:role")?.getValue();
-        if (!role) return reject(new Error("Role not found"));
+        const attributes: Record<string, string> = {};
+        attrs.forEach((attr) => {
+          attributes[attr.getName()] = attr.getValue();
+        });
 
-        resolve(role);
+        resolve({
+          username: user.getUsername(),
+          attributes,
+        });
       });
     });
   });
 
+  export const getUserType = async (): Promise<string> => {
+    const user = await getUser();
+    const role = user.attributes["custom:role"];
+    if (!role) throw new Error("Role not found");
+    return role;
+  };
 
-  export const signOut = () => {
-    const user = pool.getCurrentUser();
-  
-    if (user) {
-      user.signOut(); 
-    }
-  }; 
+
+export const signOut = () => {
+  const user = pool.getCurrentUser();
+  if (user) user.signOut();
+};

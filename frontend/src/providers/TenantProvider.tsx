@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserRole } from "@/hooks/useUserRole";
 
-export default function ManagerProvider({ children }: { children: React.ReactNode }) {
+export default function TenantProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { role, loading } = useUserRole();
   const [checking, setChecking] = useState(true);

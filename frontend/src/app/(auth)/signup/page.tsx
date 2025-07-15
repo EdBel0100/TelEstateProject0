@@ -1,7 +1,4 @@
 "use client";
-// make sure the cognito id is unique
-// make sure to hash the cognito id before uploading to the cognito and database
-// make the changes to the tradeperson in db
 import { useState } from "react";
 import SHA256 from "crypto-js/sha256";
 
@@ -13,9 +10,9 @@ import { useRouter } from "next/navigation";
 
 import {
   useCreateTenantMutation,
-  useCreateLandlordMutation,
+  useCreateManagerMutation,
   useCreateTradepersonMutation,
-  useGetLandlordCognitoIdByPhoneQuery
+  useGetManagerCognitoIdByPhoneQuery,
 } from "@/state/api";
 
 import { Button } from "@/components/ui/button";
@@ -37,7 +34,7 @@ export default function SignUpPage() {
   const router = useRouter();
 
   const [createTenant] = useCreateTenantMutation();
-  const [createLandlord] = useCreateLandlordMutation();
+  const [createManager] = useCreateManagerMutation();
   const [createTradeperson] = useCreateTradepersonMutation();
 
   const [form, setForm] = useState({
@@ -51,15 +48,18 @@ export default function SignUpPage() {
     address: "",
     companyName: "",
     service: "",
-    landlordPhoneNumber: "", // new field here
+    managerPhoneNumber: "", // renamed from landlordPhoneNumber
+    apartmentNumber: "",
+    postalCode: "",
   });
+
   const {
-    data: landlordData,
-    error: landlordError,
+    data: managerData,
+    error: managerError,
     isLoading,
-  } = useGetLandlordCognitoIdByPhoneQuery(
-    { phoneNumber: form.landlordPhoneNumber },
-    { skip: !form.landlordPhoneNumber }
+  } = useGetManagerCognitoIdByPhoneQuery(
+    { phoneNumber: form.managerPhoneNumber },
+    { skip: !form.managerPhoneNumber }
   );
 
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export default function SignUpPage() {
         form.email.toLowerCase().trim()
       ).toString();
 
-      const landlordCognitoId = landlordData?.cognitoId;
+      const managerCognitoId = managerData?.cognitoId;
       const attributes: CognitoUserAttribute[] = [
         new CognitoUserAttribute({ Name: "email", Value: form.email }),
         new CognitoUserAttribute({
@@ -130,7 +130,9 @@ export default function SignUpPage() {
             address: form.address,
             companyName: form.companyName,
             service: form.service,
-            landlordCognitoId: landlordCognitoId,
+            managerCognitoId: managerCognitoId,
+            apartmentNumber: form.apartmentNumber,
+            postalCode: form.postalCode,
           };
 
           localStorage.setItem("pendingSignupUser", JSON.stringify(userData));
@@ -144,11 +146,14 @@ export default function SignUpPage() {
                   phoneNumber: formatPhone(form.phone_number),
                   firstName: form.firstName,
                   lastName: form.lastName,
+                  apartmentNumber: form.apartmentNumber,
+                  address: form.address,
+                  postalCode: form.postalCode,
                 }).unwrap();
                 break;
 
               case "manager":
-                await createLandlord({
+                await createManager({
                   cognitoId: hashedCognitoId,
                   email: form.email,
                   phoneNumber: formatPhone(form.phone_number),
@@ -158,10 +163,8 @@ export default function SignUpPage() {
                 break;
 
               case "tradeperson": {
-                const landlordCognitoId = landlordData?.cognitoId;
-
-                if (!landlordCognitoId) {
-                  setError("Could not find landlord with that phone number.");
+                if (!managerCognitoId) {
+                  setError("Could not find manager with that phone number.");
                   setLoading(false);
                   return;
                 }
@@ -175,9 +178,9 @@ export default function SignUpPage() {
                   address: form.address,
                   companyName: form.companyName,
                   service: form.service,
-                  landlord: {
+                  manager: {
                     connect: {
-                      cognitoId: landlordCognitoId,
+                      cognitoId: managerCognitoId,
                     },
                   },
                 }).unwrap();
@@ -186,6 +189,7 @@ export default function SignUpPage() {
             }
           } catch (dbError) {
             console.error("Database registration failed:", dbError);
+            setError("Failed to register user in database.");
           }
 
           router.push(
@@ -273,6 +277,41 @@ export default function SignUpPage() {
             />
           </div>
 
+          {form.role === "tenant" && (
+            <>
+              <div>
+                <Label htmlFor="apartmentNumber">Apartment Number</Label>
+                <Input
+                  id="apartmentNumber"
+                  name="apartmentNumber"
+                  value={form.apartmentNumber}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={form.address}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="postalCode">Postal Code</Label>
+                <Input
+                  id="postalCode"
+                  name="postalCode"
+                  value={form.postalCode}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+            </>
+          )}
+
           {form.role === "tradeperson" && (
             <>
               <div>
@@ -306,13 +345,13 @@ export default function SignUpPage() {
               </div>
 
               <div>
-                <Label htmlFor="landlordPhoneNumber">
-                  Landlord Phone Number
+                <Label htmlFor="managerPhoneNumber">
+                  Manager Phone Number
                 </Label>
                 <Input
-                  id="landlordPhoneNumber"
-                  name="landlordPhoneNumber"
-                  value={form.landlordPhoneNumber}
+                  id="managerPhoneNumber"
+                  name="managerPhoneNumber"
+                  value={form.managerPhoneNumber}
                   onChange={onChange}
                   required
                 />

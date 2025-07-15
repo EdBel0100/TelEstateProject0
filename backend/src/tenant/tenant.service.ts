@@ -1,33 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@database/generated';
 import { DatabaseService } from 'src/database/database.service';
+import CreateTenantDto from '@DTO/tenant-dto/create-tenant.dto';
 
 
 @Injectable()
-
-
 export class TenantService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  create(createTenantDto: Prisma.TenantCreateInput) { 
-    return this.databaseService.tenant.create({
-      data: createTenantDto,
+  async create(data: CreateTenantDto) {
+    const property = await this.databaseService.property.findFirst({
+      where: {
+        apartmentNumber: data.apartmentNumber,
+        building: {
+          location: {
+            address: data.address,
+            postalCode: data.postalCode,
+          },
+        },
+      },
     });
+
+    if (!property) {
+      throw new NotFoundException('Property not found for given apartment and address.');
+    }
+
+    // 2. Create tenant linked to the property
+    const tenant = await this.databaseService.tenant.create({
+      data: {
+        cognitoId: data.cognitoId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
+        propertyId: property.id, // ✅ link using propertyId directly
+      },
+    });
+
+    return tenant;
   }
 
-  findAll() {
-    return `This action returns all tenant`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} tenant`;
-  }
-
-  update(id: number, updateTenantDto: Prisma.TenantUpdateInput) {
-    return `This action updates a #${id} tenant`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} tenant`;
-  }
 }

@@ -19,7 +19,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@database/generated": ["../database/generated"]
+      "@database/generated": ["../database/generated"],
+      "@DTO/*": ["../backend/src/dtos/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": [],

@@ -6,12 +6,12 @@ import { DatabaseService } from 'src/database/database.service';
 export class ManagerService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async create(createManagerDto: Prisma.LandlordCreateInput) {
-    return this.databaseService.landlord.create({ data: createManagerDto });
+  async create(createManagerDto: Prisma.ManagerCreateInput) {
+    return this.databaseService.manager.create({ data: createManagerDto });
   }
 
   async findByPhone(phoneNumber: string) {
-    return this.databaseService.landlord.findFirst({
+    return this.databaseService.manager.findFirst({
       where: {
         phoneNumber,
       },
@@ -22,22 +22,22 @@ export class ManagerService {
   }
 
   async findAll() {
-    return this.databaseService.landlord.findMany();
+    return this.databaseService.manager.findMany();
   }
 
   async findOne(id: number) {
-    return this.databaseService.landlord.findFirst({ where: { id } });
+    return this.databaseService.manager.findFirst({ where: { id } });
   }
 
-  async update(id: number, updateManagerDto: Prisma.LandlordUpdateInput) {
-    return this.databaseService.landlord.update({
+  async update(id: number, updateManagerDto: Prisma.ManagerUpdateInput) {
+    return this.databaseService.manager.update({
       where: { id },
       data: updateManagerDto,
     });
   }
 
   async remove(id: number) {
-    return this.databaseService.landlord.delete({
+    return this.databaseService.manager.delete({
       where: { id },
     });
   }
