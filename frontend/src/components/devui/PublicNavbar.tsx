@@ -19,15 +19,15 @@ const PublicNavbar = () => {
           className="flex items-center gap-3 hover:text-primary-300"
         >
           <Image
-            src="/logo.svg"
+            src="/TelEstateLogo.png"
             alt="Rentiful Logo"
-            width={24}
-            height={24}
+            width={50}
+            height={50}
             className="w-6 h-6"
           />
           <span className="text-xl font-bold">
-            RENT
-            <span className="text-secondary-500 font-light">IFUL</span>
+            TEL
+            <span className="text-secondary-500 font-light">ESTATE</span>
           </span>
         </Link>
 

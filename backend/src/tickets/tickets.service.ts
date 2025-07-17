@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { Prisma } from '@database/generated';
-import { CreateTicketForTenantDto } from '@DTO/ticket-dto/ticket-create-for-tenants.dto';
+import { CreateTicketForTenantDto } from '@DTO/ticket-dto/create-ticket-for-tenants.dto';
 
 
 @Injectable()
@@ -32,9 +32,8 @@ export class TicketsService {
         description: createTicketDto.description,
         status: createTicketDto.status,
         submittedAt: new Date(createTicketDto.submittedAt),
-        property: {
-          connect: { id: property.id },
-        },
+        tenantCognitoId: createTicketDto.tenantCognitoId,
+        propertyId:property.id,
       },
     });
   }
@@ -64,7 +63,11 @@ export class TicketsService {
       },
     });
   }
-}
+  async deleteTicketById(id: number) {
+    return this.databaseService.tickets.delete({ where: { id } });
+  }
   
+}
+
 
  

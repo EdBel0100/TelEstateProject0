@@ -3,7 +3,9 @@
 import React, { useState } from "react";
 import { useCreateTicketForTenantMutation } from "@/state/api";
 
-const tenantCognitoId = "7fb2fa9ed97d37120bada865cf45453982beca9db52f0815cd163992685263c0"; // or get dynamically
+// You can pass this via props or route context later
+const tenantCognitoId = "7fb2fa9ed97d37120bada865cf45453982beca9db52f0815cd163992685263c0";
+const propertyId = 1; // Replace this with dynamic value
 
 export const CreateTicketPage: React.FC = () => {
   const [title, setTitle] = useState("");
@@ -21,14 +23,13 @@ export const CreateTicketPage: React.FC = () => {
         status,
         submittedAt: new Date().toISOString(),
         tenantCognitoId,
+        propertyId, // ✅ Add this line
       }).unwrap();
 
-      // reset form on success
       setTitle("");
       setDescription("");
       setStatus("urgent");
     } catch (err) {
-      console.log(err)
       console.error("Failed to create ticket:", err);
     }
   };

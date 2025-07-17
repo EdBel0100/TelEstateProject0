@@ -6,6 +6,7 @@ import {
   IconCreditCard,
   IconChartBar,
   IconTicket,
+  IconBuilding
 } from "@tabler/icons-react";
 import { signOut } from "@/utils/userUtils";
 
@@ -19,6 +20,11 @@ export const mainLinksLandlord = [
       label: "Manage Tickets",
       href: "/managetickets",
       icon: <IconTicket className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
+    },
+    {
+      label: "Manage Buidings",
+      href: "/managebuildings",
+      icon: <IconBuilding className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
     },
     {
       label: "Manage Messages",
@@ -40,7 +46,7 @@ export const mainLinksLandlord = [
       href: "#",
       icon: <IconCreditCard className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
     },
-
+   
   ];
 
   export const mainLinksTenant = [

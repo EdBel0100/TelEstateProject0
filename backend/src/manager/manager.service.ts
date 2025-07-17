@@ -36,9 +36,4 @@ export class ManagerService {
     });
   }
 
-  async remove(id: number) {
-    return this.databaseService.manager.delete({
-      where: { id },
-    });
-  }
 }

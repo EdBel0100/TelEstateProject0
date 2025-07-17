@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsDateString } from "class-validator";
+import { IsString, IsEnum, IsDateString, IsNumber } from "class-validator";
 
 export class CreateTicketForTenantDto {
   @IsString()
@@ -12,6 +12,9 @@ export class CreateTicketForTenantDto {
 
   @IsDateString()
   submittedAt: string;
+
+  @IsNumber()
+  propertyId:number
 
   @IsString()
   tenantCognitoId: string;

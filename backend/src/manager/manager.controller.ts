@@ -44,8 +44,4 @@ export class ManagerController {
     return this.managerService.update(id, updateManagerDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.managerService.remove(id);
-  }
 }

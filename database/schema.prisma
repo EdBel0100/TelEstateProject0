@@ -33,7 +33,7 @@ model Tenant {
 
   propertyId  Int?     // Remove @unique
   property    Property? @relation(fields: [propertyId], references: [id])
-
+  tickets Tickets[]
   conversations Conversation[]
 }
 
@@ -53,31 +53,31 @@ model TradePerson {
   conversations Conversation[]
 }
 
-model Location {
-  id         Int    @id @default(autoincrement())
-  address    String
-  city       String
-  state      String
-  country    String
-  postalCode String
-  // coordinates Unsupported – Prisma doesn't support geometry natively, can use @db.Geography if using PostGIS
-
-  buildings Building[]
-}
-
 model Building {
   id                Int       @id @default(autoincrement())
   name              String
   photosUrl         String
   typeOfBuilding    String
   numberOfProperty  Int
-  managerCognitoId String
-  locationId        Int
+  managerCognitoId  String
+  locationId Int @unique
 
-  manager Manager @relation(fields: [managerCognitoId], references: [cognitoId])
-  location Location @relation(fields: [locationId], references: [id])
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  manager    Manager @relation(fields: [managerCognitoId], references: [cognitoId])
   properties Property[]
 }
+
+model Location {
+  id         Int      @id @default(autoincrement())
+  address    String
+  city       String
+  state      String
+  country    String
+  postalCode String
+
+  building   Building?
+}
+
 
 model Property {
   id                Int       @id @default(autoincrement())
@@ -88,7 +88,7 @@ model Property {
   buildingId        Int
   managerCognitoId  String
 
-  building Building @relation(fields: [buildingId], references: [id])
+  building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
   manager  Manager  @relation(fields: [managerCognitoId], references: [cognitoId])
   tickets  Tickets[]
   lease    Lease?
@@ -105,7 +105,8 @@ model Tickets {
   status      String   // consider using enum: URGENT | CONCERNING | WARNING
   submittedAt DateTime
   propertyId  Int
-
+  tenantCognitoId String 
+  tenant Tenant @relation(fields: [tenantCognitoId], references: [cognitoId])
   property Property @relation(fields: [propertyId], references: [id])
 }
 

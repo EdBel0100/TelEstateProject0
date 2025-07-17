@@ -1,5 +1,5 @@
 // page.tsx
-import { ManageTickets } from "@/components/devui/Tickets/ManageTickets";
+import { ManageTickets } from "@/components/devui/tickets/ManageTickets";
 
 const Page = () => {
   return (

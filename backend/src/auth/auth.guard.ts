@@ -1,11 +1,20 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AuthGuard extends PassportAuthGuard('jwt') implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private reflector: Reflector) {
+    super();
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -17,19 +26,17 @@ export class AuthGuard implements CanActivate {
     }
 
     const [bearer, token] = authHeader.split(' ');
-
     if (bearer !== 'Bearer' || !token) {
       this.logger.warn(`Invalid authorization header format: ${authHeader}`);
       throw new UnauthorizedException('Invalid authorization header format');
     }
 
-    this.logger.log(`Received token: ${token.substring(0, 10)}...`);
+    this.logger.log(`Token received: ${token.substring(0, 10)}...`);
 
     try {
-      const user = await this.authService.validateToken(token);
-      this.logger.log(`Token validated successfully for user: ${user.email || user.sub || 'unknown'}`);
-      request.user = user; // Attach user info to request object
-      return true;
+      const isAllowed = await super.canActivate(context);
+      this.logger.log('Token successfully validated by Passport JWT strategy');
+      return isAllowed as boolean;
     } catch (error) {
       this.logger.error('Token validation failed', error.stack);
       throw new UnauthorizedException('Unauthorized');

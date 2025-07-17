@@ -1,9 +1,14 @@
 import { Tenant, Manager, TradePerson, Prisma, Tickets } from "@database/generated";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { TicketByLandlordDto } from '@DTO/ticket-dto/get-ticket-by-landlord.dto';
-import { CreateTicketForTenantDto } from "@DTO/ticket-dto/ticket-create-for-tenants.dto"
+import {CreateTicketForTenantDto} from "@DTO/ticket-dto/create-ticket-for-tenants.dto"
 import CreateTenantDto from "@DTO/tenant-dto/create-tenant.dto"
 import { fetchAuthSession } from "@/utils/fetchAuthSession";
+import { BuildingGetManyDto } from "@DTO/building-dto/get-building-by-managerCognitoId.dto"
+import { CreateBuildingDto } from "@DTO/building-dto/create-building.dto"
+import { Building } from "@database/generated";
+import { UpdateBuildingDto } from "@DTO/building-dto/update-building.dto"
+import { boolean } from "zod";
 
 
 
@@ -84,6 +89,44 @@ export const api = createApi({
       body,
     }),
   }),
+  deleteTicket: build.mutation<void, { id: number }>({
+    query: ({ id }) => ({
+      url: `/tickets/manager/${id}`,
+      method: "DELETE",
+    }),
+  }),
+
+  getBuildingsByManager: build.query<BuildingGetManyDto[],{ managerCognitoId:string }>({
+    query: ({managerCognitoId}) => ({
+      url:"/building/manager",
+      method: "GET",
+      params:{ managerCognitoId },
+    }),
+  }),
+createBuildingForManager: build.mutation<Building, CreateBuildingDto>({
+  query: (body) => {
+  console.log('API call - createBuildingForManager payload:', body);
+  return {
+    url: "/building/manager",
+    method: "POST",
+    body,
+  }},
+}),
+updateBuilding: build.mutation<Building, UpdateBuildingDto>({
+  query: (body) => {
+    console.log('API call - updatingbuilding payload:', body);
+    return {
+    url: `/building/manager/${body.id}`,
+    method: "PATCH",
+    body,
+  }},
+}),
+deleteBuilding: build.mutation<{ success: boolean; id: number }, { id: number }>({
+  query: ({ id }) => ({
+    url: `/building/manager/${id}`,
+    method: "DELETE",
+  }),
+}),
 
   }),
 });
@@ -93,5 +136,11 @@ export const {
   useCreateManagerMutation,
   useCreateTradepersonMutation,
   useGetTicketsByManagerQuery,
-  useCreateTicketForTenantMutation
+  useCreateTicketForTenantMutation,
+  useDeleteTicketMutation,
+  useGetManagerCognitoIdByPhoneQuery,
+  useGetBuildingsByManagerQuery,
+  useCreateBuildingForManagerMutation,
+  useUpdateBuildingMutation,
+  useDeleteBuildingMutation,
 } = api;
