@@ -162,10 +162,16 @@ export class BuildingService {
           select: {
             id: true,
             apartmentNumber: true,
+            numberOfBathrooms: true,
+            numberOfRooms: true,
+            size:true,
             tenants: {
-              select: {
+              select: {             // Add tenant id
+                cognitoId: true,       // Add cognitoId
+                email: true,           // Add email
                 firstName: true,
                 lastName: true,
+                phoneNumber: true,     // Add phone number    // Optional if needed in frontend
               },
             },
           },
@@ -173,6 +179,7 @@ export class BuildingService {
       },
     });
   }
+  
 
   async delete(id: number) {
     const building = await this.databaseService.building.findUnique({

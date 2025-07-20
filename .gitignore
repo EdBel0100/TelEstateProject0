@@ -39,7 +39,17 @@ Desktop.ini
 /backend/pnpm-lock.yaml
 /backend/yarn.lock
 
-# Database 
-database/node_modules/
+# Database
+/database/node_modules/
 /database/.env*
-database/generated/
+/database/generated/
+
+# Infrastructure (CDK)
+/infrastructure/*.js
+!/infrastructure/jest.config.js
+/infrastructure/*.d.ts
+/infrastructure/node_modules/
+
+# CDK asset staging directory
+.cdk.staging/
+cdk.out/

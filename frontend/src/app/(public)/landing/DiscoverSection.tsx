@@ -34,34 +34,25 @@ const DiscoverSection = () => {
             Discover
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            Find your Dream Rental Property Today!
+            Manage your properties with the power of TELESTATE.
           </p>
           <p className="mt-2 text-gray-500 max-w-3xl mx-auto">
-            Searching for your dream rental property has never been easier. With
-            our user-friendly search feature, you can quickly find the perfect
-            home that meets all your needs. Start your search today and discover
-            your dream rental property!
+            Managing your properties has never been easier. Start your journey with us today.
           </p>
         </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 xl:gap-16 text-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 text-center">
           {[
             {
               imageSrc: "/landing-icon-wand.png",
-              title: "Search for Properties",
+              title: "Use the power of AI",
               description:
-                "Browse through our extensive collection of rental properties in your desired location.",
+                "Use the magic of Artificial inteligence to manage your properties",
             },
             {
               imageSrc: "/landing-icon-calendar.png",
-              title: "Book Your Rental",
+              title: "Manage your tenants",
               description:
-                "Once you've found the perfect rental property, easily book it online with just a few clicks.",
-            },
-            {
-              imageSrc: "/landing-icon-heart.png",
-              title: "Enjoy your New Home",
-              description:
-                "Move into your new rental property and start enjoying your dream home.",
+                "Talk to your tenants, send alerts manage issues... ",
             },
           ].map((card, index) => (
             <motion.div key={index} variants={itemVariants}>

@@ -1,6 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { Prisma } from '@database/generated';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { RolesGuard } from '@guards/roles.guard';
+import { Roles } from '@guards/roles.decorator';
+
 
 
 @Controller('conversations')
@@ -11,24 +15,25 @@ export class ConversationsController {
   create(@Body() createConversationDto: Prisma.ConversationCreateInput) {
     return this.conversationsService.create(createConversationDto);
   }
-
-  @Get()
-  findAll() {
-    return this.conversationsService.findAll();
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("manager")
+  @Get("/manager")
+  getByManagerCognitoId(@Query("managerCognitoId") managerCognitoId:string){
+    return this.conversationsService.getConversationsByManager(managerCognitoId)
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.conversationsService.findOne(+id);
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("tenant")
+  @Get("/tenant")
+  getByTenantCognitoId(@Query("tenantCognitoId") tenantCognitoId:string){
+    return this.conversationsService.getConversationsByTenant(tenantCognitoId)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateConversationDto: Prisma.ConversationUpdateInput) {
-    return this.conversationsService.update(+id, updateConversationDto);
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("manager")
+  @Delete(`/manager/:id`)
+  deleteConversation(@Param("id") id:number){
+    return this.conversationsService.deleteConversation(Number(id))
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.conversationsService.remove(+id);
-  }
 }

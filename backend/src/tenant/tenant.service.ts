@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@database/generated';
 import { DatabaseService } from 'src/database/database.service';
 import CreateTenantDto from '@DTO/tenant-dto/create-tenant.dto';
 
@@ -10,6 +9,8 @@ export class TenantService {
 
 //to be implemented, a method that checks if the lease is done and wont renew, and if it is done then drop the tenant from the database
 
+
+// this should be updated in the future since connecting thenants to landlords through adress and postalCode aint so secure
   async create(data: CreateTenantDto) {
     const property = await this.databaseService.property.findFirst({
       where: {
@@ -27,7 +28,6 @@ export class TenantService {
       throw new NotFoundException('Property not found for given apartment and address.');
     }
 
-    // 2. Create tenant linked to the property
     const tenant = await this.databaseService.tenant.create({
       data: {
         cognitoId: data.cognitoId,
@@ -42,4 +42,13 @@ export class TenantService {
     return tenant;
   }
 
+  async getAllTenantsByManager(managerCognitoId:string){
+    return await this.databaseService.tenant.findMany({
+      where:{
+        property:{
+          managerCognitoId
+        }
+      }
+    })
+  }
 }

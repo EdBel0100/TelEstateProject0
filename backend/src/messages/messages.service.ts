@@ -7,21 +7,9 @@ import { DatabaseService } from 'src/database/database.service';
 export class MessagesService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async create(createMessageDto: Prisma.MessagesCreateInput) {
+  async create(createMessageDto: Prisma.MessagesUncheckedCreateInput) {
     return this.databaseService.messages.create({
       data:createMessageDto
-    })
-  }
-
-  async findAll() {
-    return this.databaseService.messages.findMany({});
-  }
-
-  async findOne(id: number) {
-    return this.databaseService.messages.findFirst({
-      where:{
-      id,
-      }
     })
   }
 

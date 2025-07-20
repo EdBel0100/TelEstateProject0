@@ -80,22 +80,35 @@ export default function SignUpPage() {
     return "+1" + phone.replace(/\D/g, "");
   };
 
+  const deleteCognitoUser = async (username: string) => {
+    try {
+      const response = await fetch("/api/delete-cognito-user", {
+        method: "POST",
+        body: JSON.stringify({ username }),
+        headers: { "Content-Type": "application/json" },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete user from Cognito.");
+      }
+    } catch (err) {
+      console.error("Cognito rollback failed:", err);
+    }
+  };
+  
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
+  
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
-      const hashedCognitoId = SHA256(
-        form.email.toLowerCase().trim()
-      ).toString();
-
+      const hashedCognitoId = SHA256(form.email.toLowerCase().trim()).toString();
       const managerCognitoId = managerData?.cognitoId;
       const attributes: CognitoUserAttribute[] = [
         new CognitoUserAttribute({ Name: "email", Value: form.email }),
@@ -107,7 +120,7 @@ export default function SignUpPage() {
         new CognitoUserAttribute({ Name: "family_name", Value: form.lastName }),
         new CognitoUserAttribute({ Name: "custom:role", Value: form.role }),
       ];
-
+  
       userPool.signUp(
         hashedCognitoId,
         form.password,
@@ -119,24 +132,7 @@ export default function SignUpPage() {
             setLoading(false);
             return;
           }
-
-          const userData = {
-            username: hashedCognitoId,
-            email: form.email,
-            phone_number: formatPhone(form.phone_number),
-            firstName: form.firstName,
-            lastName: form.lastName,
-            role: form.role,
-            address: form.address,
-            companyName: form.companyName,
-            service: form.service,
-            managerCognitoId: managerCognitoId,
-            apartmentNumber: form.apartmentNumber,
-            postalCode: form.postalCode,
-          };
-
-          localStorage.setItem("pendingSignupUser", JSON.stringify(userData));
-
+  
           try {
             switch (form.role) {
               case "tenant":
@@ -151,7 +147,7 @@ export default function SignUpPage() {
                   postalCode: form.postalCode,
                 }).unwrap();
                 break;
-
+  
               case "manager":
                 await createManager({
                   cognitoId: hashedCognitoId,
@@ -161,14 +157,15 @@ export default function SignUpPage() {
                   lastName: form.lastName,
                 }).unwrap();
                 break;
-
-              case "tradeperson": {
+  
+              case "tradeperson":
                 if (!managerCognitoId) {
                   setError("Could not find manager with that phone number.");
                   setLoading(false);
+                  await deleteCognitoUser(hashedCognitoId); // rollback
                   return;
                 }
-
+  
                 await createTradeperson({
                   cognitoId: hashedCognitoId,
                   email: form.email,
@@ -185,25 +182,25 @@ export default function SignUpPage() {
                   },
                 }).unwrap();
                 break;
-              }
             }
+  
+            router.push(`/confirm?username=${encodeURIComponent(hashedCognitoId)}`);
           } catch (dbError) {
             console.error("Database registration failed:", dbError);
             setError("Failed to register user in database.");
+            await deleteCognitoUser(hashedCognitoId); // rollback
           }
-
-          router.push(
-            `/confirm?username=${encodeURIComponent(hashedCognitoId)}`
-          );
+  
+          setLoading(false);
         }
       );
     } catch (e) {
       console.error("Unexpected signup error:", e);
       setError("Signup error occurred.");
-    } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">

@@ -9,8 +9,8 @@ const CallToActionSection = () => {
   return (
     <div className="relative py-24">
       <Image
-        src="/landing-call-to-action.jpg"
-        alt="Rentiful Search Section Background"
+        src="/landing-call-to-action-image.png"
+        alt="Rentiful Join Beta Background"
         fill
         className="object-cover object-center"
       />
@@ -25,20 +25,19 @@ const CallToActionSection = () => {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0 md:mr-10">
             <h2 className="text-2xl font-bold text-white">
-              Find Your Dream Rental Property
+              Join the Beta
             </h2>
           </div>
           <div>
             <p className="text-white mb-3">
-              Discover a wide range of rental properties in your desired
-              location.
+              Be among the first to experience our platform and provide feedback.
             </p>
             <div className="flex justify-center md:justify-start gap-4">
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="inline-block text-primary-700 bg-white rounded-lg px-6 py-3 font-semibold hover:bg-primary-500 hover:text-primary-50"
               >
-                Search
+                Learn More
               </button>
               <Link
                 href="/signup"

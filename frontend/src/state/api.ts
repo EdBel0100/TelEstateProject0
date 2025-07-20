@@ -1,4 +1,4 @@
-import { Tenant, Manager, TradePerson, Prisma, Tickets } from "@database/generated";
+import { Tenant, Manager, TradePerson, Prisma, Tickets, Conversation, Messages } from "@database/generated";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { TicketByLandlordDto } from '@DTO/ticket-dto/get-ticket-by-landlord.dto';
 import {CreateTicketForTenantDto} from "@DTO/ticket-dto/create-ticket-for-tenants.dto"
@@ -8,7 +8,9 @@ import { BuildingGetManyDto } from "@DTO/building-dto/get-building-by-managerCog
 import { CreateBuildingDto } from "@DTO/building-dto/create-building.dto"
 import { Building } from "@database/generated";
 import { UpdateBuildingDto } from "@DTO/building-dto/update-building.dto"
-import { boolean } from "zod";
+import { ConversationGetManyDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto"
+import { ConversationGetByTenantDto } from "@DTO/conversation-dto/get-conversation-by-tenant.dto"
+
 
 
 
@@ -105,7 +107,6 @@ export const api = createApi({
   }),
 createBuildingForManager: build.mutation<Building, CreateBuildingDto>({
   query: (body) => {
-  console.log('API call - createBuildingForManager payload:', body);
   return {
     url: "/building/manager",
     method: "POST",
@@ -114,7 +115,6 @@ createBuildingForManager: build.mutation<Building, CreateBuildingDto>({
 }),
 updateBuilding: build.mutation<Building, UpdateBuildingDto>({
   query: (body) => {
-    console.log('API call - updatingbuilding payload:', body);
     return {
     url: `/building/manager/${body.id}`,
     method: "PATCH",
@@ -127,6 +127,52 @@ deleteBuilding: build.mutation<{ success: boolean; id: number }, { id: number }>
     method: "DELETE",
   }),
 }),
+getConversationByManager: build.query<ConversationGetManyDto[], {managerCognitoId:string}>({
+  query: ({ managerCognitoId }) => ({
+    url: "/conversations/manager",
+    method: "GET",
+    params: {managerCognitoId},
+  }),
+}),
+
+getAllTenantByManager: build.query<Tenant[], { managerCognitoId: string }>({
+    query: ({ managerCognitoId }) => ({
+    url:"/tenant/manager",
+    method: "GET",
+    params: { managerCognitoId },
+  }),
+}),
+createConversationForManagers: build.mutation<Conversation, Prisma.ConversationCreateInput>({
+  query:(body) => {
+    return {
+      url:"/conversations",
+      method: "POST",
+      body,
+    }},
+}),
+createMessage: build.mutation<Messages, Prisma.MessagesUncheckedCreateInput>({
+  query:(body) => {
+    return {
+      url:"/messages",
+      method:"POST",
+      body,
+    }},
+}),
+getConversationByTenant: build.query<ConversationGetByTenantDto, {tenantCognitoId:string}>({
+  query: ({tenantCognitoId}) => ({
+    url:"/conversations/tenant",
+    method:"GET",
+    params:{tenantCognitoId}
+  }),
+}),
+deleteConversation: build.mutation<void, {id:number}>({
+  query: ({id}) => ({
+    url: `conversations/manager/${id}`,
+    method:"DELETE"
+  })
+})
+
+
 
   }),
 });
@@ -143,4 +189,10 @@ export const {
   useCreateBuildingForManagerMutation,
   useUpdateBuildingMutation,
   useDeleteBuildingMutation,
+  useGetConversationByManagerQuery,
+  useGetAllTenantByManagerQuery,
+  useCreateConversationForManagersMutation,
+  useCreateMessageMutation,
+  useGetConversationByTenantQuery,
+  useDeleteConversationMutation,
 } = api;

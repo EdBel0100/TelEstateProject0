@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TenantService } from './tenant.service';
-import { Prisma } from '@database/generated';
 import CreateTenantDto from "@DTO/tenant-dto/create-tenant.dto"
+
 @Controller('tenant')
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
@@ -9,6 +9,11 @@ export class TenantController {
   @Post()
   create(@Body() createTenantDto: CreateTenantDto) {
     return this.tenantService.create(createTenantDto);
+  }
+
+  @Get("/manager")
+  getAllTenantsByManager(@Query("managerCognitoId") managerCognitoId:string){
+    return this.tenantService.getAllTenantsByManager(managerCognitoId)
   }
 
 } 

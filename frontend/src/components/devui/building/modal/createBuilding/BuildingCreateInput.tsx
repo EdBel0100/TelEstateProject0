@@ -56,6 +56,9 @@ export const BuildingCreateForm: React.FC<BuildingCreateFormProps> = ({ onSubmit
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  //here we will upload the to S3 and get back the the url of the picture in the bucket 
+  //we should have the 
+
   const handleLocationChange = (field: keyof LocationDto, value: string) => {
     setFormData((prev) => ({
       ...prev,

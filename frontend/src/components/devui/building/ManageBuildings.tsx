@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BuildingCreateModal } from "./modal/createBuilding/BuildingCreateModal";
+import { BuildingCreateModal } from "./modal/createbuilding/BuildingCreateModal";
 import { BuildingUpdateModal } from "./modal/updateBuilding/BuildingUpdateModal";
 import { BuildingDeleteConfirmModal } from "./modal/deleteBuilding/BuildingDeleteConfirmModal";
 import { BuildingCard } from "./BuildingCard";

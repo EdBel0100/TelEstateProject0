@@ -22,9 +22,15 @@ export type BuildingGetManyDto = {
   properties: Array<{
     id: number;
     apartmentNumber?: string | null;
+    numberOfRooms: number;
+    numberOfBathrooms: number;
+    size: number;
     tenants: Array<{
+      cognitoId: string;
+      email: string;
       firstName: string;
       lastName: string;
+      phoneNumber: string;
     }>;
   }>;
 };

@@ -8,9 +8,9 @@ import { CreateTicketForTenantDto } from '@DTO/ticket-dto/create-ticket-for-tena
 export class TicketsService {
   constructor(private readonly databaseService: DatabaseService) {}
 
+  //this should include picture upload in the future 
   
   async CreateForTenant(createTicketDto: CreateTicketForTenantDto) {
-    // Find property based on tenant cognito id
     const property = await this.databaseService.property.findFirst({
       where: {
         tenants: {

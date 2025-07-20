@@ -2,31 +2,22 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { MessagesService } from './messages.service';
 import { Prisma } from '@database/generated';
 import { Query } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
-  //create message
+  @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createMessageDto: Prisma.MessagesCreateInput) {
+  create(@Body() createMessageDto: Prisma.MessagesUncheckedCreateInput) {
     return this.messagesService.create(createMessageDto);
   }
 
-  //get all messages
-  @Get("all")
-  findAll() {
-    return this.messagesService.findAll();
-  }
 
-  //get one message
-  @Get('one/:id')
-  findOne(@Query('id') id: string) {
-    return this.messagesService.findOne(+id);
-  }
-  //get messages by conversation
-  @Get('conversation')
+  @Get('/conversation')
   getByConversation(@Query('id') id: string) {
     return this.messagesService.getByConversation(+id);
   }
