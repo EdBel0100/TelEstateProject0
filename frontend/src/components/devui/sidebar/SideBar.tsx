@@ -6,6 +6,7 @@ import { Sidebar, SidebarBody, SidebarLink } from "../../ui/sidebar";
 import { cn } from "@/lib/utils";
 import { bottomLinks, mainLinksLandlord, mainLinksTenant, mainLinksTradeperson  } from "./links";
 import { useUserRole } from "@/hooks/useUserRole";
+import Image from "next/image";
 
 
 export function SideBar() {
@@ -53,7 +54,7 @@ export function SideBar() {
                 label: "Manu Arora",
                 href: "#",
                 icon: (
-                  <img
+                  <Image
                     src="https://assets.aceternity.com/manu.png"
                     className="h-7 w-7 shrink-0 rounded-full"
                     width={50}

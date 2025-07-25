@@ -3,10 +3,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
 export const TelEstateLogo = () => {
   return (
-    <a
+    <Link
       href="/"
       className="flex items-center space-x-2 py- px-2 text-lg font-bold text-black dark:text-white"
     >
@@ -25,6 +26,6 @@ export const TelEstateLogo = () => {
       >
         TelEstate
       </motion.span>
-    </a>
+    </Link>
   );
 };

@@ -1,0 +1,5 @@
+To build the backend:
+docker build -f backend/Dockerfile -t nest-backend .
+To run the backend:
+docker run -p 3001:3001 nest-backend
+

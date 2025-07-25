@@ -36,4 +36,10 @@ export class ConversationsController {
     return this.conversationsService.deleteConversation(Number(id))
   }
 
+
+
+@Post("tenant/signup")
+createConversationForTenantSignup(@Body() data:Prisma.ConversationUncheckedCreateInput){
+  return this.conversationsService.createConversationForTenantSignup(data)
+}
 }

@@ -1,52 +1,50 @@
 import { Prisma } from '@database/generated';
 import { Injectable,Logger } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-
+import { GetConversationByTenantDto } from '@DTO/conversation-dto/get-conversation-by-tenant.dto';
+import {GetConversationByManagerDto} from "@DTO/conversation-dto/get-conversations-by-manager.dto"
 
 @Injectable()
 export class ConversationsService {
   constructor(private readonly databaseService: DatabaseService){}
-  logger = new Logger()
+
 
   //should be created on tenant sign up
   async create(createConversationDto: Prisma.ConversationCreateInput) {
-    this.logger.log('Creating conversation with data: ' + JSON.stringify(createConversationDto));
 
     try {
       const created = await this.databaseService.conversation.create({
         data: createConversationDto,
       });
-
-      this.logger.log('Conversation created successfully: ' + JSON.stringify(created));
       return created;
     } catch (error) {
-      this.logger.error('Failed to create conversation:', error);
       throw error;
     }
   }
   
 
-  getConversationsByManager(managerCognitoId:string){
+  getConversationsByManager(managerCognitoId: string): Promise<GetConversationByManagerDto[]> {
     return this.databaseService.conversation.findMany({
-      where:{
+      where: {
         managerCognitoId,
       },
-      include:{
-        messages:true,
-        tenant:true,
-      }
-    })
+      include: {
+        messages: true,
+        tenant: true,
+      },
+    });
   }
 
-  getConversationsByTenant(tenantCognitoId:string){
-    return this.databaseService.conversation.findFirst({
-    where:{
-      tenantCognitoId,
-    },
-    include:{
-      messages:true,
-    }
-  })
+  getConversationsByTenant(tenantCognitoId: string): Promise<GetConversationByTenantDto[]> {
+  return this.databaseService.conversation.findMany({
+    where: { tenantCognitoId },
+    include: { messages: true },
+  });
+}
+
+
+  async createConversationForTenantSignup(data: Prisma.ConversationUncheckedCreateInput) {
+    return this.databaseService.conversation.create({ data });
   }
 
   deleteConversation(id:number){

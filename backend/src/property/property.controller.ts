@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { Prisma } from '@database/generated';
 
@@ -16,9 +16,9 @@ export class PropertyController {
     return this.propertyService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.propertyService.findOne({ id: Number(id) });
+  @Get('/tenant')
+  getPropertyForTenant(@Query('tenantCognitoId') tenantCognitoId: string) {
+    return this.propertyService.getPropertyForTenant(tenantCognitoId);
   }
 
   @Patch(':id')

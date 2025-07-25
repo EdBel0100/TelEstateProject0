@@ -1,5 +1,4 @@
 import {
-    IsString,
     IsNotEmpty,
     IsNumber,
     IsOptional,
@@ -7,6 +6,7 @@ import {
     IsArray,
   } from 'class-validator';
   import { Type } from 'class-transformer';
+  import { IsString } from 'class-validator';
   
   export class LocationDto {
     @IsString()
@@ -58,7 +58,7 @@ import {
   
     @ValidateNested()
     @Type(() => LocationDto)
-    location: LocationDto;
+    location: LocationDto
   
     @IsOptional()
     @IsArray()

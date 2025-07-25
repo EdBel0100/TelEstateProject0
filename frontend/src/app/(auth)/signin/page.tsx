@@ -44,7 +44,7 @@ export default function SignInPage() {
     });
 
     const authDetails = new AuthenticationDetails({
-      Username: form.email, // and here
+      Username: form.email, 
       Password: form.password,
     });
 

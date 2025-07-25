@@ -1,18 +1,28 @@
-import { Tenant, Manager, TradePerson, Prisma, Tickets, Conversation, Messages } from "@database/generated";
+import {
+  Tenant,
+  Manager,
+  TradePerson,
+  Prisma,
+  Tickets,
+  Conversation,
+  Messages,
+  Property,
+  Building,
+} from "@database/generated";
+
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { TicketByLandlordDto } from '@DTO/ticket-dto/get-ticket-by-landlord.dto';
-import {CreateTicketForTenantDto} from "@DTO/ticket-dto/create-ticket-for-tenants.dto"
-import CreateTenantDto from "@DTO/tenant-dto/create-tenant.dto"
 import { fetchAuthSession } from "@/utils/fetchAuthSession";
-import { BuildingGetManyDto } from "@DTO/building-dto/get-building-by-managerCognitoId.dto"
-import { CreateBuildingDto } from "@DTO/building-dto/create-building.dto"
-import { Building } from "@database/generated";
-import { UpdateBuildingDto } from "@DTO/building-dto/update-building.dto"
-import { ConversationGetManyDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto"
-import { ConversationGetByTenantDto } from "@DTO/conversation-dto/get-conversation-by-tenant.dto"
 
-
-
+// DTOs
+import { GetTicketByLandlordDto } from "@DTO/ticket-dto/get-ticket-by-landlord.dto";
+import { CreateTicketForTenantDto } from "@DTO/ticket-dto/create-ticket-for-tenants.dto";
+import CreateTenantDto from "@DTO/tenant-dto/create-tenant.dto";
+import { GetBuildingByManagerDto } from "@DTO/building-dto/get-building-by-managerCognitoId.dto";
+import { CreateBuildingDto } from "@DTO/building-dto/create-building.dto";
+import { UpdateBuildingDto } from "@DTO/building-dto/update-building.dto";
+import { GetConversationByTenantDto } from "@DTO/conversation-dto/get-conversation-by-tenant.dto";
+import { GetConversationByManagerDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto";
+import { GetTenantManagerAndProperty } from '@DTO/tenant-dto/get-tenant-manager-and-property.dto';
 
 
 export const api = createApi({
@@ -20,24 +30,84 @@ export const api = createApi({
     baseUrl: "http://localhost:3001",
     prepareHeaders: async (headers) => {
       const idToken = await fetchAuthSession();
-
-    if (idToken) {
-      headers.set('Authorization', `Bearer ${idToken}`);
-    }
-    console.log(idToken)
-    return headers;
-  },
+      if (idToken) {
+        headers.set("Authorization", `Bearer ${idToken}`);
+      }
+      return headers;
+    },
   }),
   reducerPath: "api",
   tagTypes: [],
   endpoints: (build) => ({
-    createTenant: build.mutation<Tenant, CreateTenantDto>({
+    // --------- BUILDING ---------
+    getBuildingsByManager: build.query<GetBuildingByManagerDto[], { managerCognitoId: string }>({
+      query: ({ managerCognitoId }) => ({
+        url: "/building/manager",
+        method: "GET",
+        params: { managerCognitoId },
+      }),
+    }),
+    createBuildingForManager: build.mutation<Building, CreateBuildingDto>({
       query: (body) => ({
-        url: "/tenant",
+        url: "/building/manager",
         method: "POST",
         body,
       }),
     }),
+    updateBuilding: build.mutation<Building, UpdateBuildingDto>({
+      query: (body) => ({
+        url: `/building/manager/${body.id}`,
+        method: "PATCH",
+        body,
+      }),
+    }),
+    deleteBuilding: build.mutation<{ success: boolean; id: number }, { id: number }>({
+      query: ({ id }) => ({
+        url: `/building/manager/${id}`,
+        method: "DELETE",
+      }),
+    }),
+
+    // --------- CONVERSATION ---------
+    getConversationByManager: build.query<GetConversationByManagerDto[], { managerCognitoId: string }>({
+      query: ({ managerCognitoId }) => ({
+        url: "/conversations/manager",
+        method: "GET",
+        params: { managerCognitoId },
+      }),
+    }),
+    getConversationByTenant: build.query<GetConversationByTenantDto[], { tenantCognitoId: string }>({
+      query: ({ tenantCognitoId }) => ({
+        url: "/conversations/tenant",
+        method: "GET",
+        params: { tenantCognitoId },
+      }),
+    }),
+    createConversationForManagers: build.mutation<Conversation, Prisma.ConversationCreateInput>({
+      query: (body) => ({
+        url: "/conversations",
+        method: "POST",
+        body,
+      }),
+    }),
+    createConversationForTenantSignup: build.mutation<Conversation, Prisma.ConversationUncheckedCreateInput>({
+      query: (body) => ({
+        url: "/conversations/tenant/signup",
+        method: "POST",
+        body,
+      }),
+    }),
+    deleteConversation: build.mutation<void, { id: number }>({
+      query: ({ id }) => ({
+        url: `conversations/manager/${id}`,
+        method: "DELETE",
+      }),
+    }),
+
+    // --------- LOCATION ---------
+    // (Add location-related endpoints here if needed)
+
+    // --------- MANAGER ---------
     createManager: build.mutation<Manager, Prisma.ManagerCreateInput>({
       query: (body) => ({
         url: "/manager",
@@ -45,20 +115,7 @@ export const api = createApi({
         body,
       }),
     }),
-    createTradeperson: build.mutation<
-      TradePerson,
-      Prisma.TradePersonCreateInput
-    >({
-      query: (body) => ({
-        url: "/tradeperson",
-        method: "POST",
-        body,
-      }),
-    }),
-    getManagerCognitoIdByPhone: build.query<
-      { cognitoId: string },
-      { phoneNumber: string }
-    >({
+    getManagerCognitoIdByPhone: build.query<{ cognitoId: string }, { phoneNumber: string }>({
       query: (body) => ({
         url: "/manager/by-phone",
         method: "POST",
@@ -66,17 +123,59 @@ export const api = createApi({
       }),
     }),
 
-    getTicketsByManager: build.query<
-      TicketByLandlordDto[],
-      {managerCognitoId: string }
-    >({
+    // --------- PROPERTY ---------
+    getPropertyForTenant: build.query<Property, { tenantCognitoId: string }>({
+      query: ({ tenantCognitoId }) => ({
+        url: `/property/tenant`,
+        method: "GET",
+        params: { tenantCognitoId },
+      }),
+    }),
+
+    // --------- TENANT ---------
+    createTenant: build.mutation<Tenant, CreateTenantDto>({
+      query: (body) => ({
+        url: "/tenant",
+        method: "POST",
+        body,
+      }),
+    }),
+    getAllTenantByManager: build.query<Tenant[], { managerCognitoId: string }>({
+      query: ({ managerCognitoId }) => ({
+        url: "/tenant/manager",
+        method: "GET",
+        params: { managerCognitoId },
+      }),
+    }),
+    getTenantManager: build.query<GetTenantManagerAndProperty, { tenantCognitoId: string }>({
+      query: ({ tenantCognitoId }) => ({
+        url: `tenant/tenant/manager`,
+        method: "GET",
+        params: { tenantCognitoId },
+      }),
+    }),
+
+    // --------- TICKETS ---------
+    getTicketsByManager: build.query<GetTicketByLandlordDto[], { managerCognitoId: string }>({
       query: ({ managerCognitoId }) => ({
         url: "/tickets/manager",
         method: "GET",
         params: { managerCognitoId },
       }),
     }),
-
+    createTicketForTenant: build.mutation<Tickets, CreateTicketForTenantDto>({
+      query: (body) => ({
+        url: "/tickets/tenant",
+        method: "POST",
+        body,
+      }),
+    }),
+    deleteTicket: build.mutation<void, { id: number }>({
+      query: ({ id }) => ({
+        url: `/tickets/manager/${id}`,
+        method: "DELETE",
+      }),
+    }),
     createTicket: build.mutation<TradePerson, Prisma.TradePersonCreateInput>({
       query: (body) => ({
         url: "/tickets",
@@ -84,96 +183,24 @@ export const api = createApi({
         body,
       }),
     }),
-    createTicketForTenant: build.mutation<Tickets,CreateTicketForTenantDto>({
-    query: (body) => ({
-      url: '/tickets/tenant',
-      method: 'POST',
-      body,
+
+    // --------- TRADEPERSON ---------
+    createTradeperson: build.mutation<TradePerson, Prisma.TradePersonCreateInput>({
+      query: (body) => ({
+        url: "/tradeperson",
+        method: "POST",
+        body,
+      }),
     }),
-  }),
-  deleteTicket: build.mutation<void, { id: number }>({
-    query: ({ id }) => ({
-      url: `/tickets/manager/${id}`,
-      method: "DELETE",
+
+    // --------- MESSAGES ---------
+    createMessage: build.mutation<Messages, Prisma.MessagesUncheckedCreateInput>({
+      query: (body) => ({
+        url: "/messages",
+        method: "POST",
+        body,
+      }),
     }),
-  }),
-
-  getBuildingsByManager: build.query<BuildingGetManyDto[],{ managerCognitoId:string }>({
-    query: ({managerCognitoId}) => ({
-      url:"/building/manager",
-      method: "GET",
-      params:{ managerCognitoId },
-    }),
-  }),
-createBuildingForManager: build.mutation<Building, CreateBuildingDto>({
-  query: (body) => {
-  return {
-    url: "/building/manager",
-    method: "POST",
-    body,
-  }},
-}),
-updateBuilding: build.mutation<Building, UpdateBuildingDto>({
-  query: (body) => {
-    return {
-    url: `/building/manager/${body.id}`,
-    method: "PATCH",
-    body,
-  }},
-}),
-deleteBuilding: build.mutation<{ success: boolean; id: number }, { id: number }>({
-  query: ({ id }) => ({
-    url: `/building/manager/${id}`,
-    method: "DELETE",
-  }),
-}),
-getConversationByManager: build.query<ConversationGetManyDto[], {managerCognitoId:string}>({
-  query: ({ managerCognitoId }) => ({
-    url: "/conversations/manager",
-    method: "GET",
-    params: {managerCognitoId},
-  }),
-}),
-
-getAllTenantByManager: build.query<Tenant[], { managerCognitoId: string }>({
-    query: ({ managerCognitoId }) => ({
-    url:"/tenant/manager",
-    method: "GET",
-    params: { managerCognitoId },
-  }),
-}),
-createConversationForManagers: build.mutation<Conversation, Prisma.ConversationCreateInput>({
-  query:(body) => {
-    return {
-      url:"/conversations",
-      method: "POST",
-      body,
-    }},
-}),
-createMessage: build.mutation<Messages, Prisma.MessagesUncheckedCreateInput>({
-  query:(body) => {
-    return {
-      url:"/messages",
-      method:"POST",
-      body,
-    }},
-}),
-getConversationByTenant: build.query<ConversationGetByTenantDto, {tenantCognitoId:string}>({
-  query: ({tenantCognitoId}) => ({
-    url:"/conversations/tenant",
-    method:"GET",
-    params:{tenantCognitoId}
-  }),
-}),
-deleteConversation: build.mutation<void, {id:number}>({
-  query: ({id}) => ({
-    url: `conversations/manager/${id}`,
-    method:"DELETE"
-  })
-})
-
-
-
   }),
 });
 
@@ -195,4 +222,7 @@ export const {
   useCreateMessageMutation,
   useGetConversationByTenantQuery,
   useDeleteConversationMutation,
+  useGetPropertyForTenantQuery,
+  useCreateConversationForTenantSignupMutation,
+  useLazyGetTenantManagerQuery,
 } = api;

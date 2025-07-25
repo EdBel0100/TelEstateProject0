@@ -15,7 +15,9 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      
     ],
+    domains: ['assets.aceternity.com','media.istockphoto.com'],
   },
 };
 

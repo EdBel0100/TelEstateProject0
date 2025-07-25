@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "./generated"  
-  
+  provider      = "prisma-client-js"
+  output        = "./generated"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -33,9 +33,11 @@ model Tenant {
 
   propertyId  Int?    
   property    Property? @relation(fields: [propertyId], references: [id])
-  tickets Tickets[]
+  tickets     Tickets[]
   conversations Conversation[]
+  payment     Payment? 
 }
+
 
 model TradePerson {
   id               Int      @id @default(autoincrement())
@@ -63,7 +65,7 @@ model Building {
   locationId Int @unique
 
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  manager    Manager @relation(fields: [managerCognitoId], references: [cognitoId])
+  manager    Manager @relation(fields: [managerCognitoId], references: [cognitoId], onDelete: Cascade)
   properties Property[]
 }
 
@@ -89,12 +91,10 @@ model Property {
   managerCognitoId  String
 
   building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-  manager  Manager  @relation(fields: [managerCognitoId], references: [cognitoId])
+  manager  Manager  @relation(fields: [managerCognitoId], references: [cognitoId], onDelete: Cascade)
   tickets  Tickets[]
-  lease    Lease?
-  payment  Payment[]
-
-  tenants  Tenant[]   // Changed from `tenant Tenant?` to many tenants
+  lease    Lease?  
+  tenants  Tenant[] 
 }
 
 
@@ -102,34 +102,37 @@ model Tickets {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  status      String   // consider using enum: URGENT | CONCERNING | WARNING
+  status      String  
   submittedAt DateTime
   propertyId  Int
   tenantCognitoId String 
-  tenant Tenant @relation(fields: [tenantCognitoId], references: [cognitoId])
-  property Property @relation(fields: [propertyId], references: [id])
+  tenant Tenant @relation(fields: [tenantCognitoId], references: [cognitoId], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
 model Lease {
-  id         Int      @id @default(autoincrement())
-  startDate  DateTime
-  endDate    DateTime
-  deposit    Float
-  propertyId Int      @unique
+  id           Int       @id @default(autoincrement())
+  startDate    DateTime
+  endDate      DateTime
+  deposit      Float
+  rentDueDate  DateTime  
+  propertyId   Int       @unique
 
-  property Property @relation(fields: [propertyId], references: [id])
+  property     Property  @relation(fields: [propertyId], references: [id])
+  payments     Payment[]
 }
 
 model Payment {
-  id             Int      @id @default(autoincrement())
-  amountDue      Float
-  amountPaid     Float
-  dueDate        DateTime
-  paymentDate    DateTime
-  paymentStatus  String
-  leased         Int
+  id            Int      @id @default(autoincrement())
+  amountDue     Float
+  amountPaid    Float
+  paymentDate   DateTime
+  paymentStatus String
 
-  property Property @relation(fields: [leased], references: [id])
+  leaseId       Int
+  tenantId      Int   @unique 
+  lease         Lease  @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  tenant        Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Conversation {
@@ -140,20 +143,20 @@ model Conversation {
   tradePersonCognitoId String?
   
 
-  manager   Manager?    @relation(fields: [managerCognitoId], references: [cognitoId])
-  tenant     Tenant?       @relation(fields: [tenantCognitoId], references: [cognitoId])
-  tradePerson TradePerson? @relation(fields: [tradePersonCognitoId], references: [cognitoId])
+  manager   Manager?    @relation(fields: [managerCognitoId], references: [cognitoId], onDelete: Cascade)
+  tenant     Tenant?       @relation(fields: [tenantCognitoId], references: [cognitoId], onDelete: Cascade)
+  tradePerson TradePerson? @relation(fields: [tradePersonCognitoId], references: [cognitoId], onDelete: Cascade)
   messages   Messages[]
 }
 
 model Messages {
   id              Int      @id @default(autoincrement())
-  senderType      String   // enum: manager | tenant
+  senderType      String   
   senderCognitoId String
   content         String
   createdAt       DateTime
   conversationId  Int
 
-  conversation Conversation @relation(fields: [conversationId], references: [id])
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 

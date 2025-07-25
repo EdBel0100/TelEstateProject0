@@ -16,7 +16,7 @@ export interface BuildingCreateFormProps {
 
 export const BuildingCreateForm: React.FC<BuildingCreateFormProps> = ({ onSubmit, onCancel }) => {
   const user = useUser();
-  const managerCognitoId = user?.username;
+  const managerCognitoId = user?.attributes.sub;
   const {
     refetch,
   } = useGetBuildingsByManagerQuery(
@@ -123,7 +123,8 @@ export const BuildingCreateForm: React.FC<BuildingCreateFormProps> = ({ onSubmit
       const createdBuilding = await createBuildingForManager(formData).unwrap();
       console.log("Building created:", createdBuilding);
       onSubmit(createdBuilding);
-      await refetch()
+      refetch()
+      
     } catch (err) {
       console.error("Failed to create building:", err);
     }

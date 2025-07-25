@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
-import SHA256 from "crypto-js/sha256";
+import { v4 as uuidv4 } from "uuid";
 
+import { useState } from "react";
 import {
   CognitoUserPool,
   CognitoUserAttribute,
@@ -48,7 +48,7 @@ export default function SignUpPage() {
     address: "",
     companyName: "",
     service: "",
-    managerPhoneNumber: "", // renamed from landlordPhoneNumber
+    managerPhoneNumber: "",
     apartmentNumber: "",
     postalCode: "",
   });
@@ -87,7 +87,7 @@ export default function SignUpPage() {
         body: JSON.stringify({ username }),
         headers: { "Content-Type": "application/json" },
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to delete user from Cognito.");
       }
@@ -95,7 +95,7 @@ export default function SignUpPage() {
       console.error("Cognito rollback failed:", err);
     }
   };
-  
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -108,7 +108,6 @@ export default function SignUpPage() {
     setLoading(true);
   
     try {
-      const hashedCognitoId = SHA256(form.email.toLowerCase().trim()).toString();
       const managerCognitoId = managerData?.cognitoId;
       const attributes: CognitoUserAttribute[] = [
         new CognitoUserAttribute({ Name: "email", Value: form.email }),
@@ -121,8 +120,10 @@ export default function SignUpPage() {
         new CognitoUserAttribute({ Name: "custom:role", Value: form.role }),
       ];
   
+      const generatedUsername = uuidv4();
+  
       userPool.signUp(
-        hashedCognitoId,
+        generatedUsername,
         form.password,
         attributes,
         [],
@@ -133,11 +134,14 @@ export default function SignUpPage() {
             return;
           }
   
+          const username = result.user.getUsername(); // Use this for deletion
+          const cognitoSub = result.userSub;
+  
           try {
             switch (form.role) {
               case "tenant":
                 await createTenant({
-                  cognitoId: hashedCognitoId,
+                  cognitoId: cognitoSub,
                   email: form.email,
                   phoneNumber: formatPhone(form.phone_number),
                   firstName: form.firstName,
@@ -150,7 +154,7 @@ export default function SignUpPage() {
   
               case "manager":
                 await createManager({
-                  cognitoId: hashedCognitoId,
+                  cognitoId: cognitoSub,
                   email: form.email,
                   phoneNumber: formatPhone(form.phone_number),
                   firstName: form.firstName,
@@ -162,12 +166,12 @@ export default function SignUpPage() {
                 if (!managerCognitoId) {
                   setError("Could not find manager with that phone number.");
                   setLoading(false);
-                  await deleteCognitoUser(hashedCognitoId); // rollback
+                  await deleteCognitoUser(username); // Correct identifier
                   return;
                 }
   
                 await createTradeperson({
-                  cognitoId: hashedCognitoId,
+                  cognitoId: cognitoSub,
                   email: form.email,
                   phone: formatPhone(form.phone_number),
                   firstName: form.firstName,
@@ -184,16 +188,17 @@ export default function SignUpPage() {
                 break;
             }
   
-            router.push(`/confirm?username=${encodeURIComponent(hashedCognitoId)}`);
+            router.push(`/confirm?username=${encodeURIComponent(username)}`);
           } catch (dbError) {
             console.error("Database registration failed:", dbError);
             setError("Failed to register user in database.");
-            await deleteCognitoUser(hashedCognitoId); // rollback
+            await deleteCognitoUser(username); // rollback
           }
   
           setLoading(false);
         }
       );
+      //here have a conversation created on accout creation with the landlord
     } catch (e) {
       console.error("Unexpected signup error:", e);
       setError("Signup error occurred.");
@@ -342,9 +347,7 @@ export default function SignUpPage() {
               </div>
 
               <div>
-                <Label htmlFor="managerPhoneNumber">
-                  Manager Phone Number
-                </Label>
+                <Label htmlFor="managerPhoneNumber">Manager Phone Number</Label>
                 <Input
                   id="managerPhoneNumber"
                   name="managerPhoneNumber"

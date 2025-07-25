@@ -16,7 +16,6 @@ export class MessagesController {
     return this.messagesService.create(createMessageDto);
   }
 
-
   @Get('/conversation')
   getByConversation(@Query('id') id: string) {
     return this.messagesService.getByConversation(+id);

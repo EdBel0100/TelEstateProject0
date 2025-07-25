@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateBuildingDto } from '@DTO/building-dto/create-building.dto';
 import { UpdateBuildingDto } from '@DTO/building-dto/update-building.dto';
-import { Logger } from '@nestjs/common';
+import { GetBuildingByManagerDto } from '@DTO/building-dto/get-building-by-managerCognitoId.dto';
 
 @Injectable()
 export class BuildingService {
@@ -42,45 +42,25 @@ export class BuildingService {
   }
 
   async update(data: UpdateBuildingDto) {
-    const logger = new Logger('BuildingService:update');
-  
     const { id, managerCognitoId, location, properties, ...rest } = data;
   
-    logger.log(`Starting update for building id: ${id}`);
-    logger.log(`Manager CognitoId: ${managerCognitoId}`);
-    logger.log(`Location data: ${JSON.stringify(location)}`);
-    logger.log(`Other building fields: ${JSON.stringify(rest)}`);
-    logger.log(`Incoming properties: ${JSON.stringify(properties)}`);
-  
-    // Step 1: Remove orphaned properties
+    // Fetch existing property IDs
     const existingProps = await this.databaseService.property.findMany({
       where: { buildingId: Number(id) },
       select: { id: true },
     });
   
-    logger.log(`Existing properties for building ${id}: ${JSON.stringify(existingProps)}`);
-  
     const incomingPropIds = properties?.filter(p => p.id).map(p => p.id) ?? [];
-    logger.log(`Incoming property IDs: ${JSON.stringify(incomingPropIds)}`);
   
     const propsToDelete = existingProps
       .filter((p) => !incomingPropIds.includes(p.id))
       .map((p) => p.id);
   
-    logger.log(`Properties to delete: ${JSON.stringify(propsToDelete)}`);
-  
     if (propsToDelete.length > 0) {
-      logger.log(`Deleting orphaned properties...`);
       await this.databaseService.property.deleteMany({
         where: { id: { in: propsToDelete } },
       });
-      logger.log(`Deleted orphaned properties with IDs: ${JSON.stringify(propsToDelete)}`);
-    } else {
-      logger.log(`No orphaned properties to delete.`);
     }
-  
-    logger.log(`Updating building with new data...`);
-  
     const result = await this.databaseService.building.update({
       where: { id: Number(id) },
       data: {
@@ -130,57 +110,37 @@ export class BuildingService {
       },
     });
   
-    logger.log(`Building updated successfully: ${JSON.stringify(result)}`);
+    // 🧮 Count current properties after update and set the numberOfProperties field
+    const currentPropCount = await this.databaseService.property.count({
+      where: { buildingId: Number(id) },
+    });
+  
+    // 🔁 Update numberOfProperties
+    await this.databaseService.building.update({
+      where: { id: Number(id) },
+      data: { numberOfProperty: currentPropCount },
+    });
   
     return result;
   }
+  
 
-  getBuildingByManager(managerCognitoId: string) {
+  getBuildingByManager(managerCognitoId: string): Promise<GetBuildingByManagerDto[]> {
     return this.databaseService.building.findMany({
       where: { managerCognitoId },
       include: {
-        manager: {
-          select: {
-            cognitoId: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
-        location: {
-          select: {
-            id: true,
-            address: true,
-            city: true,
-            state: true,
-            country: true,
-            postalCode: true,
-          },
-        },
+        manager: true,
+        location: true,
         properties: {
-          select: {
-            id: true,
-            apartmentNumber: true,
-            numberOfBathrooms: true,
-            numberOfRooms: true,
-            size:true,
-            tenants: {
-              select: {             // Add tenant id
-                cognitoId: true,       // Add cognitoId
-                email: true,           // Add email
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,     // Add phone number    // Optional if needed in frontend
-              },
-            },
+          include: {
+            tenants: true,  
           },
         },
       },
     });
   }
   
-
+      
   async delete(id: number) {
     const building = await this.databaseService.building.findUnique({
       where: { id: Number(id) },

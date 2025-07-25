@@ -1,20 +1,35 @@
 "use client";
 
 import React, { useState } from "react";
-import { useCreateTicketForTenantMutation } from "@/state/api";
-
-// You can pass this via props or route context later
-const tenantCognitoId = "7fb2fa9ed97d37120bada865cf45453982beca9db52f0815cd163992685263c0";
-const propertyId = 1; // Replace this with dynamic value
+import {
+  useCreateTicketForTenantMutation,
+  useGetPropertyForTenantQuery,
+} from "@/state/api";
+import { useUser } from "@/hooks/useUser";
 
 export const CreateTicketPage: React.FC = () => {
+  const user = useUser();
+  const tenantCognitoId = user?.attributes?.sub ?? "";
+
+  // ✅ Always call hooks unconditionally
+  const { data: property, isLoading: isLoadingProperty } = useGetPropertyForTenantQuery(
+    { tenantCognitoId },
+    { skip: !tenantCognitoId }
+  );
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"urgent" | "concerning" | "warning">("urgent");
-  const [createTicket, { isLoading, isError, error, isSuccess }] = useCreateTicketForTenantMutation();
+  const [createTicket, { isLoading, isError, error, isSuccess }] =
+    useCreateTicketForTenantMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!property?.id) {
+      console.error("No property found for this tenant.");
+      return;
+    }
 
     try {
       await createTicket({
@@ -23,7 +38,7 @@ export const CreateTicketPage: React.FC = () => {
         status,
         submittedAt: new Date().toISOString(),
         tenantCognitoId,
-        propertyId, // ✅ Add this line
+        propertyId: property.id,
       }).unwrap();
 
       setTitle("");
@@ -33,6 +48,26 @@ export const CreateTicketPage: React.FC = () => {
       console.error("Failed to create ticket:", err);
     }
   };
+
+  if (!tenantCognitoId) {
+    return (
+      <p className="text-center py-10 text-red-600">
+        Could not identify tenant. Please log in again.
+      </p>
+    );
+  }
+
+  if (isLoadingProperty) {
+    return <p className="text-center py-10">Loading property...</p>;
+  }
+
+  if (!property) {
+    return (
+      <p className="text-center py-10 text-red-600">
+        No property found for your account.
+      </p>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto p-4">
@@ -63,7 +98,9 @@ export const CreateTicketPage: React.FC = () => {
           Status
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value as "urgent" | "concerning" | "warning")}
+            onChange={(e) =>
+              setStatus(e.target.value as "urgent" | "concerning" | "warning")
+            }
             className="border rounded px-2 py-1 w-full"
           >
             <option value="urgent">Urgent</option>
@@ -80,8 +117,14 @@ export const CreateTicketPage: React.FC = () => {
           {isLoading ? "Creating..." : "Create Ticket"}
         </button>
 
-        {isError && <p className="text-red-500">Error creating ticket: {(error as any)?.data?.message || String(error)}</p>}
-        {isSuccess && <p className="text-green-600">Ticket created successfully!</p>}
+        {isError && (
+          <p className="text-red-500">
+            Error creating ticket: {(error as any)?.data?.message || String(error)}
+          </p>
+        )}
+        {isSuccess && (
+          <p className="text-green-600">Ticket created successfully!</p>
+        )}
       </form>
     </div>
   );

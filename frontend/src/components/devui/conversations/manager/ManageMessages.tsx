@@ -5,9 +5,8 @@ import { useUser } from "@/hooks/useUser";
 import { useGetConversationByManagerQuery } from "@/state/api";
 import { ConversationList } from "./ConversationsList";
 import { MessagePanel } from "@/components/devui/conversations/manager/MessagesPanel";
-import type { MessagePreviewDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto";
 import { useCreateMessageMutation } from "@/state/api";
-import { Prisma } from "@database/generated";
+import { Messages, Prisma } from "@database/generated";
 
 
 
@@ -21,8 +20,8 @@ export default function ManageMessages() {
     error: conversationsError,
     refetch
   } = useGetConversationByManagerQuery(
-    { managerCognitoId: user?.username ?? "" },
-    { skip: !user?.username }
+    { managerCognitoId: user?.attributes.sub ?? "" },
+    { skip: !user?.attributes.sub }
   );
   const [createMessage, { isLoading: messageIsLoading, error: messageError }] = useCreateMessageMutation();
 
@@ -33,20 +32,20 @@ export default function ManageMessages() {
 
 
   // Convert senderType string to proper union type for MessagePanel
-  const messages: MessagePreviewDto[] =
-    selectedConversation?.messages?.map((m) => ({
+  const messages: Messages[] =
+    selectedConversation?.messages?.map((m:Messages) => ({
       ...m,
       senderType: m.senderType as "tenant" | "manager" | "tradeperson",
     })) ?? [];
 
   const handleSend = async (text: string) => {
-    if (!selectedId || !user?.username) return;
+    if (!selectedId || !user?.attributes.sub) return;
 
     try {
       const data: Prisma.MessagesUncheckedCreateInput = {
         conversationId: selectedId,
         content: text,
-        senderCognitoId: user.username,
+        senderCognitoId: user.attributes.sub,
         createdAt: now,
         senderType: "manager"
       }
@@ -61,7 +60,7 @@ export default function ManageMessages() {
   return (
     <main className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 p-4 h-[calc(100vh-100px)] bg-gray-50">
       <ConversationList
-        managerCognitoId={user?.username ?? ""}
+        managerCognitoId={user?.attributes.sub ?? ""}
         conversations={conversations}
         selectedId={selectedId}
         onSelect={setSelectedId}

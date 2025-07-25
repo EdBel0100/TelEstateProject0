@@ -10,7 +10,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ConversationGetManyDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto";
+import type { GetConversationByManagerDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto";
 
 import {
   useDeleteConversationMutation,
@@ -18,11 +18,11 @@ import {
 } from "@/state/api";
 
 import { CreateConversationModal } from "./CreateConversationModal";
-import { ConversationDeleteConfirmModal } from "./ConversationDeleteConfirmModal"; // adjust path if needed
+import { ConversationDeleteConfirmModal } from "./ConversationDeleteConfirmModal";
 
 interface ConversationListProps {
   managerCognitoId: string;
-  conversations: ConversationGetManyDto[];
+  conversations: GetConversationByManagerDto[];
   selectedId: number | null;
   onSelect: (id: number) => void;
   isLoading: boolean;
@@ -47,14 +47,10 @@ export const ConversationList = ({
     name: string;
   } | null>(null);
 
-  const formatParticipantName = (conversation: ConversationGetManyDto) => {
+  const formatParticipantName = (conversation: GetConversationByManagerDto) => {
     if (conversation.tenant) {
       const { firstName, lastName } = conversation.tenant;
       return `${firstName} ${lastName}`;
-    }
-    if (conversation.tradePerson) {
-      const { firstName, lastName, companyName } = conversation.tradePerson;
-      return `${firstName} ${lastName} (${companyName})`;
     }
     return "Unknown participant";
   };
@@ -110,22 +106,11 @@ export const ConversationList = ({
                   "border-primary ring-2 ring-primary/50"
               )}
             >
-              <CardHeader className="flex justify-between items-start">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
-                  {conversation.name}
-                </CardTitle>
-                <button
-                  className="text-gray-400 hover:text-red-600 transition"
-                  onClick={(e) =>
-                    confirmDelete(e, conversation.id, conversation.name)
-                  }
-                  title="Delete conversation"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <CardHeader className="flex items-start gap-2">
+                <MessageCircle className="w-5 h-5 text-muted-foreground" />
+                <CardTitle className="text-lg">{conversation.name}</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="text-sm text-muted-foreground relative pb-8">
                 <div className="font-medium">
                   {formatParticipantName(conversation)}
                 </div>
@@ -134,6 +119,15 @@ export const ConversationList = ({
                   {conversation.messages?.[0]?.content?.slice(0, 40) ??
                     "No messages yet"}
                 </div>
+                <button
+                  className="absolute bottom-2 right-2 text-gray-400 hover:text-red-600 transition"
+                  onClick={(e) =>
+                    confirmDelete(e, conversation.id, conversation.name)
+                  }
+                  title="Delete conversation"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </CardContent>
             </Card>
           ))

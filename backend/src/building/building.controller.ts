@@ -1,5 +1,5 @@
 // src/building/building.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, Query } from '@nestjs/common';
 import { BuildingService } from './building.service';
 import { Roles } from '@guards/roles.decorator';
 import { UseGuards } from '@nestjs/common';
@@ -22,7 +22,7 @@ export class BuildingController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles("manager")
   @Get('/manager')
-  getBuildingByManager(@Param('managerCognitoId') managerCognitoId:string) {
+  getBuildingByManager(@Query('managerCognitoId') managerCognitoId:string) {
     return this.buildingService.getBuildingByManager(managerCognitoId)
   }
   

@@ -6,14 +6,13 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MessagePreviewDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto";
 import { useCreateMessageMutation } from "@/state/api";
-import { Prisma } from "@database/generated";
+import { Messages, Prisma } from "@database/generated";
 
 
 interface MessagePanelProps {
   conversationId: number | null;
-  messages: MessagePreviewDto[];
+  messages: Messages[];
   onSend: (message: string) => void;
 }
 

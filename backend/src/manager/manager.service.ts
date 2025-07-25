@@ -10,23 +10,17 @@ export class ManagerService {
     return this.databaseService.manager.create({ data: createManagerDto });
   }
 
-  async findByPhone(phoneNumber: string) {
-    return this.databaseService.manager.findFirst({
-      where: {
-        phoneNumber,
-      },
-      select: {
-        cognitoId: true,
-      },
+  async findByPhone(phoneNumber: string): Promise<{ cognitoId: string }> {
+    const manager = await this.databaseService.manager.findFirst({
+      where: { phoneNumber },
+      select: { cognitoId: true },
     });
-  }
-
-  async findAll() {
-    return this.databaseService.manager.findMany();
-  }
-
-  async findOne(id: number) {
-    return this.databaseService.manager.findFirst({ where: { id } });
+  
+    if (!manager) {
+      throw new Error(`Manager with phone number ${phoneNumber} not found`);
+    }
+  
+    return manager;
   }
 
   async update(id: number, updateManagerDto: Prisma.ManagerUpdateInput) {

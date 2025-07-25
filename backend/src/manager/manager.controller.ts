@@ -26,16 +26,6 @@ export class ManagerController {
     return { cognitoId: landlord?.cognitoId ?? null };
   }
 
-  @Get()
-  findAll() {
-    return this.managerService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.managerService.findOne(id);
-  }
-
   @Patch(':id')
   update(
     @Param('id') id: number,

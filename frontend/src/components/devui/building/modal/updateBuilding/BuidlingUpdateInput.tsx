@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { UpdateBuildingDto, LocationUpdateDto, PropertyUpdateDto } from "@DTO/building-dto/update-building.dto"
 import { useUpdateBuildingMutation } from "@/state/api";
 import { useGetBuildingsByManagerQuery } from "@/state/api";
@@ -21,13 +21,12 @@ export const BuildingUpdateForm: React.FC<BuildingUpdateFormProps> = ({
 }) => {
   const [updateBuilding, { isLoading, error }] = useUpdateBuildingMutation();
   const user = useUser();
-  const managerCognitoId = user?.username;
+  const managerCognitoId = user?.attributes.sub;
 
 const {
   refetch, 
 } = useGetBuildingsByManagerQuery(
   { managerCognitoId: managerCognitoId! },
-  { skip: !managerCognitoId }
 );
 
   const [formData, setFormData] = useState<UpdateBuildingDto>(initialData);

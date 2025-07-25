@@ -3,7 +3,7 @@ import ManageMessages from "@/components/devui/conversations/manager/ManageMessa
 const page = () => {
   return (
     <div>
-      <ManageMessages />
+      <ManageMessages/>
     </div>
   );
 };

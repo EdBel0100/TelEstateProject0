@@ -5,7 +5,7 @@ import React from 'react'
 const RentGraph = () => {
   return (
     <EChartsReact
-    option=/>
+    option={}/>
   )
 }
 

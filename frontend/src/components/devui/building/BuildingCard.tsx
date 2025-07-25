@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import Modal from "react-modal";
-import { BuildingGetManyDto } from "@DTO/building-dto/get-building-by-managerCognitoId.dto";
+import { GetBuildingByManagerDto } from "@DTO/building-dto/get-building-by-managerCognitoId.dto";
 import { IconPencil, IconTrash, IconSend } from "@tabler/icons-react";
+import Image from "next/image";
 
 interface BuildingCardProps {
-  building: BuildingGetManyDto;
+  building: GetBuildingByManagerDto;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -18,13 +19,13 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTenants, setSelectedTenants] = useState<
-    BuildingGetManyDto["properties"][0]["tenants"]
+  GetBuildingByManagerDto["properties"][0]["tenants"]
   >([]);
   const [selectedApartment, setSelectedApartment] = useState<string | null>(null);
 
   const openModal = (
     apartmentNumber: string | undefined | null,
-    tenants: BuildingGetManyDto["properties"][0]["tenants"]
+    tenants: GetBuildingByManagerDto["properties"][0]["tenants"]
   ) => {
     setSelectedApartment(apartmentNumber || "N/A");
     setSelectedTenants(tenants);
@@ -49,11 +50,14 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
         </div>
       </div>
 
-      <img
-        src={building.photosUrl}
-        alt={building.name}
-        className="w-full h-48 object-cover rounded-md mb-4"
-      />
+      <div className="relative w-full h-48 mb-4 rounded-md overflow-hidden">
+  <Image
+    src={building.photosUrl}
+    alt={building.name}
+    fill
+    style={{ objectFit: 'cover' }}
+  />
+</div>
 
       <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1 mb-3">
         <p><strong>Type:</strong> {building.typeOfBuilding}</p>

@@ -13,7 +13,7 @@ type Status = "urgent" | "concerning" | "warning";
 
 export const ManageTickets: React.FC = () => {
   const user = useUser();
-  const managerCognitoId = user?.username;
+  const managerCognitoId = user?.attributes.sub;
 
   const { data, error, isLoading } = useGetTicketsByManagerQuery(
     { managerCognitoId: managerCognitoId! },
@@ -33,15 +33,16 @@ export const ManageTickets: React.FC = () => {
     }
   };
 
-  const ticketsArray = Array.isArray(data) ? data : [];
+
+
+  const sortedTickets = useMemo(() => {
+    const ticketsArray = Array.isArray(data) ? data : [];
 
   const statusOrder: Record<Status, number> = {
     urgent: 0,
     concerning: 1,
     warning: 2,
   };
-
-  const sortedTickets = useMemo(() => {
     return [...ticketsArray]
       .map((t) => ({
         ...t,
@@ -64,7 +65,7 @@ export const ManageTickets: React.FC = () => {
           new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime()
         );
       });
-  }, [ticketsArray, deletedMap]);
+  }, [data, deletedMap]);
 
   if (!managerCognitoId) return <div className="text-red-500">User not found</div>;
   if (isLoading) return <div>Loading tickets...</div>;

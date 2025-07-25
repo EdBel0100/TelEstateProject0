@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { Prisma } from '@database/generated';
+import { GetPropertyForTenant } from '@DTO/property-dto/get-property-for-tenant.dto';
 
 @Injectable()
 export class PropertyService {
@@ -15,9 +16,26 @@ export class PropertyService {
     return this.databaseService.property.findMany();
   }
 
-  findOne(where: Prisma.PropertyWhereInput) {
-    return this.databaseService.property.findFirst({ where });
+  async getPropertyForTenant(
+    tenantCognitoId: string
+  ): Promise<GetPropertyForTenant> {
+    const property = await this.databaseService.property.findFirst({
+      where: {
+        tenants: {
+          some: { cognitoId: tenantCognitoId },
+        },
+      },
+      include: { tenants: true },
+    });
+  
+    if (!property) {
+      throw new Error('Property not found for tenant');
+    }
+    return property;
   }
+  
+  
+  
 
   update(id: number, data: Prisma.BuildingUpdateInput) {
     return this.databaseService.property.update({ where: { id }, data });

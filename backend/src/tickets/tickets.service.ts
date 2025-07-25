@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { Prisma } from '@database/generated';
 import { CreateTicketForTenantDto } from '@DTO/ticket-dto/create-ticket-for-tenants.dto';
+import { GetTicketByLandlordDto } from '@DTO/ticket-dto/get-ticket-by-landlord.dto';
 
 
 @Injectable()
@@ -15,7 +16,7 @@ export class TicketsService {
       where: {
         tenants: {
           some: {
-            cognitoId: createTicketDto.tenantCognitoId,
+            propertyId: createTicketDto.propertyId,
           },
         },
       },
@@ -40,7 +41,7 @@ export class TicketsService {
   
 
 
-  async findManyByManager(ManagerCognitoId: string) {
+  async findManyByManager(ManagerCognitoId: string):Promise <GetTicketByLandlordDto[]> {
     return this.databaseService.tickets.findMany({
       where: {
         property: {

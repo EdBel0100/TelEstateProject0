@@ -1,15 +1,15 @@
 import { Prisma } from "@database/generated";
 
-export type TicketByLandlordDto = Prisma.TicketsGetPayload<{
+export type GetTicketByLandlordDto = Prisma.TicketsGetPayload<{
   include: {
     property: {
       include: {
         manager: true;
-        building:{
-          include:{
-            location:true
-          }
-        }
+        building: {
+          include: {
+            location: true;
+          };
+        };
       };
     };
   };

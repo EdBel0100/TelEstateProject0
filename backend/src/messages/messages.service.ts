@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@database/generated';
 import { DatabaseService } from 'src/database/database.service';
+import { GetMessagesByConversationDto } from '@DTO/message-dto/get-message-by-conversation.dto';
 
 
 @Injectable()
@@ -9,15 +10,15 @@ export class MessagesService {
 
   async create(createMessageDto: Prisma.MessagesUncheckedCreateInput) {
     return this.databaseService.messages.create({
-      data:createMessageDto
-    })
+      data: createMessageDto,
+    });
   }
+    
+  
 
-  async getByConversation(conversationId: number) {
-    return this.databaseService.messages.findMany({
-      where: {
-        conversationId,
-      },
+  async getByConversation(conversationId: number): Promise<GetMessagesByConversationDto> {
+    return await this.databaseService.messages.findMany({
+      where: { conversationId },
     });
   }
   

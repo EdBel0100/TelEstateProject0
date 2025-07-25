@@ -16,4 +16,9 @@ export class TenantController {
     return this.tenantService.getAllTenantsByManager(managerCognitoId)
   }
 
+  @Get("/tenant/manager")
+  getTenantManager(@Query("tenantCognitoId") tenantCognitoId:string){
+    return this.tenantService.getTenantManager(tenantCognitoId)
+  }
+
 } 

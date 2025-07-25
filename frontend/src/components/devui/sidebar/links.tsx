@@ -33,19 +33,19 @@ export const mainLinksLandlord = [
     },
     {
       label: "Rent Analysis",
-      href: "#",
+      href: "analysisrent",
       icon: <IconChartBar className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
     },
     {
       label: "Manage Payments",
-      href: "#",
+      href: "managepayments",
       icon: <IconCreditCard className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
     },
-    {
-      label: "Manage Contacts",
-      href: "#",
-      icon: <IconCreditCard className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
-    },
+    // {
+    //   label: "Manage Contacts",
+    //   href: "#",
+    //   icon: <IconCreditCard className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
+    // },
    
   ];
 
