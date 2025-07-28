@@ -1,3 +1,8 @@
+To run the project, you may run the "pnpm run dev" at the root of the project.
+The root should display something like :"edouardbelair@Edouards-MBP-2 Project0 %"
+
+
+This is for the dockerized backend, it will be used for the ECS deployment
 To build the backend:
 docker build -f backend/Dockerfile -t nest-backend .
 To run the backend:
