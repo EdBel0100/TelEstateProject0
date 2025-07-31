@@ -32,6 +32,7 @@ export const BuildingUpdateModal: React.FC<BuildingUpdateModalProps> = ({
           onSubmit(data);
           onRequestClose();
         }}
+        
         onCancel={onRequestClose}
       />
     </Modal>

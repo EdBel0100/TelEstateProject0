@@ -1,7 +1,7 @@
 "use client";
 import { v4 as uuidv4 } from "uuid";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CognitoUserPool,
   CognitoUserAttribute,
@@ -79,6 +79,7 @@ export default function SignUpPage() {
     if (phone.startsWith("+")) return phone;
     return "+1" + phone.replace(/\D/g, "");
   };
+
 
   const deleteCognitoUser = async (username: string) => {
     try {
@@ -192,7 +193,7 @@ export default function SignUpPage() {
           } catch (dbError) {
             console.error("Database registration failed:", dbError);
             setError("Failed to register user in database.");
-            await deleteCognitoUser(username); // rollback
+            await deleteCognitoUser(username); 
           }
   
           setLoading(false);

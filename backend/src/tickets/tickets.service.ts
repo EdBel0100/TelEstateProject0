@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { Prisma } from '@database/generated';
 import { CreateTicketForTenantDto } from '@DTO/ticket-dto/create-ticket-for-tenants.dto';
 import { GetTicketByLandlordDto } from '@DTO/ticket-dto/get-ticket-by-landlord.dto';
 

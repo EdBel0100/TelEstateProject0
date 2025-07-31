@@ -5,6 +5,7 @@ import {
   IsOptional,
   ValidateNested,
   IsArray,
+  IsDateString
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -30,6 +31,31 @@ export class LocationUpdateDto {
   postalCode: string;
 }
 
+export class LeaseUpdateDto {
+    @IsDateString()
+    startDate: string;
+  
+    @IsDateString()
+    endDate: string;
+  
+    @IsNumber()
+    deposit: number;
+  
+    @IsString()
+    typeOfLease: string;
+  
+    @IsNumber()
+    monthlyPrice: number;
+  
+    @IsNumber()
+    rentDueDateEachMonth: number;
+  
+    @IsNumber()
+    propertyId: number;
+  }
+  
+
+
 
 export class PropertyUpdateDto {
   @IsOptional()
@@ -48,6 +74,11 @@ export class PropertyUpdateDto {
 
   @IsNumber()
   size: number;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LeaseUpdateDto)
+  lease?: LeaseUpdateDto;
 }
 
 export class UpdateBuildingDto {

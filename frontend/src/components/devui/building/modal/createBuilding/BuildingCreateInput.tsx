@@ -1,255 +1,320 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { CreateBuildingDto, LeaseDto } from "@DTO/building-dto/create-building.dto";
 import { useCreateBuildingForManagerMutation } from "@/state/api";
-import type { CreateBuildingDto, LocationDto, PropertyDto } from "@DTO/building-dto/create-building.dto";
-import { useUser } from "@/hooks/useUser";
-import { useGetBuildingsByManagerQuery } from "@/state/api";
+import { toast } from "sonner";
 
-export interface BuildingCreateFormProps {
+interface BuildingCreateFormProps {
   onSubmit: (data: CreateBuildingDto) => void;
   onCancel: () => void;
 }
 
+const initialForm: CreateBuildingDto = {
+  name: "",
+  managerCognitoId: "",
+  photosUrl: "",
+  typeOfBuilding: "",
+  numberOfProperty: 1,
+  location: {
+    address: "",
+    city: "",
+    state: "",
+    country: "",
+    postalCode: "",
+  },
+  properties: [],
+};
 
+export const BuildingCreateForm: React.FC<BuildingCreateFormProps> = ({
+  onSubmit,
+  onCancel,
+}) => {
+  const [formData, setFormData] = useState<CreateBuildingDto>(initialForm);
+  const [createBuilding, { isLoading }] = useCreateBuildingForManagerMutation();
 
-
-export const BuildingCreateForm: React.FC<BuildingCreateFormProps> = ({ onSubmit, onCancel }) => {
-  const user = useUser();
-  const managerCognitoId = user?.attributes.sub;
-  const {
-    refetch,
-  } = useGetBuildingsByManagerQuery(
-    { managerCognitoId: managerCognitoId! },
-    { skip: !managerCognitoId }
-  );
-  
-
-  const [createBuildingForManager, { isLoading, error }] = useCreateBuildingForManagerMutation();
-  
-  const [formData, setFormData] = useState<CreateBuildingDto>({
-    name: "",
-    photosUrl: "",
-    typeOfBuilding: "",
-    numberOfProperty: 0,
-    managerCognitoId: "",
-    location: {
-      address: "",
-      city: "",
-      state: "",
-      country: "",
-      postalCode: "",
-    },
-    properties: [],
-  });
-
-  useEffect(() => {
-    if (managerCognitoId) {
-      setFormData((prev) => ({ ...prev, managerCognitoId }));
-    }
-  }, [managerCognitoId]);
-
-  const handleFieldChange = (
-    field: Exclude<keyof Omit<CreateBuildingDto, "location" | "properties">, "managerCognitoId">,
-    value: any
-  ) => {
+  const handleInputChange = (field: keyof CreateBuildingDto, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  //here we will upload the to S3 and get back the the url of the picture in the bucket 
-  //we should have the 
-
-  const handleLocationChange = (field: keyof LocationDto, value: string) => {
+  const handleLocationChange = (
+    field: keyof CreateBuildingDto["location"],
+    value: any
+  ) => {
     setFormData((prev) => ({
       ...prev,
-      location: {
-        ...prev.location,
-        [field]: value,
-      },
+      location: { ...prev.location, [field]: value },
     }));
   };
 
-  const handlePropertyCountChange = (value: number) => {
-    setFormData((prev) => {
-      const currentCount = prev.properties?.length ?? 0;
-      let newProperties = prev.properties ?? [];
-
-      if (value > currentCount) {
-        const additions: PropertyDto[] = Array(value - currentCount).fill({
+  const addProperty = () => {
+    setFormData((prev) => ({
+      ...prev,
+      properties: [
+        ...(prev.properties ?? []),
+        {
           apartmentNumber: "",
           numberOfRooms: 0,
           numberOfBathrooms: 0,
           size: 0,
-        });
-        newProperties = [...newProperties, ...additions];
-      } else {
-        newProperties = newProperties.slice(0, value);
-      }
+          lease: {
+            startDate: "",
+            endDate: "",
+            deposit: 0,
+            typeOfLease: "",
+            rentDueDateEachMonth: 1,
+            monthlyPrice: 0,
+            propertyId: 0,
+          },
+        },
+      ],
+    }));
+  };
 
-      return {
-        ...prev,
-        numberOfProperty: value,
-        properties: newProperties,
+  const updateProperty = (
+    index: number,
+    field: keyof NonNullable<CreateBuildingDto["properties"]>[number],
+    value: any
+  ) => {
+    setFormData((prev) => {
+      const properties = [...(prev.properties ?? [])];
+      properties[index] = { ...properties[index], [field]: value };
+      return { ...prev, properties };
+    });
+  };
+
+  const updateLease = (
+    propertyIndex: number,
+    leaseField: keyof LeaseDto,
+    value: any
+  ) => {
+    const dateFields: (keyof LeaseDto)[] = ["startDate", "endDate"];
+    const formattedValue =
+      dateFields.includes(leaseField) && value
+        ? new Date(value).toISOString()
+        : leaseField === "rentDueDateEachMonth"
+        ? parseInt(value, 10) || 1
+        : leaseField === "monthlyPrice" || leaseField === "deposit"
+        ? parseFloat(value) || 0
+        : value;
+
+    setFormData((prev) => {
+      const properties = [...(prev.properties ?? [])];
+      const property = properties[propertyIndex];
+      if (!property) return prev;
+
+      const lease = {
+        ...(property.lease ?? {
+          startDate: "",
+          endDate: "",
+          deposit: 0,
+          typeOfLease: "",
+          rentDueDateEachMonth: 1,
+          monthlyPrice: 0,
+          propertyId: 0,
+        }),
+        [leaseField]: formattedValue,
       };
-    });
-  };
 
-  const updateProperty = (index: number, field: keyof PropertyDto, value: any) => {
-    setFormData((prev) => {
-      if (!prev.properties) return prev;
-      const updatedProperties = [...prev.properties];
-      updatedProperties[index] = { ...updatedProperties[index], [field]: value };
-      return { ...prev, properties: updatedProperties };
-    });
-  };
+      properties[propertyIndex] = { ...property, lease };
 
-  const removeProperty = (index: number) => {
-    setFormData((prev) => {
-      if (!prev.properties) return prev;
-      const updatedProperties = prev.properties.filter((_, i) => i !== index);
-      return { ...prev, properties: updatedProperties, numberOfProperty: updatedProperties.length };
+      return { ...prev, properties };
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.managerCognitoId.trim()) {
-      console.error("Manager Cognito ID is missing.");
-      return;
-    }
-
     try {
-      const createdBuilding = await createBuildingForManager(formData).unwrap();
-      console.log("Building created:", createdBuilding);
-      onSubmit(createdBuilding);
-      refetch()
-      
-    } catch (err) {
-      console.error("Failed to create building:", err);
+      await createBuilding(formData).unwrap();
+      toast.success("Building created successfully!");
+      onSubmit(formData);
+      setFormData(initialForm);
+    } catch (error) {
+      toast.error("Failed to create building.");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-h-[80vh] overflow-y-auto">
-      <div>
-        <label className="block font-semibold mb-1">Building Name</label>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-4 border rounded shadow max-h-[80vh] overflow-auto bg-white dark:bg-neutral-900"
+    >
+      <h2 className="text-xl font-semibold">Create Building</h2>
+
+      <input
+        type="text"
+        placeholder="Building Name"
+        value={formData.name}
+        onChange={(e) => handleInputChange("name", e.target.value)}
+        className="w-full border p-2 rounded"
+        required
+      />
+
+      {/* No Manager Cognito ID input here — assign server side or use user context */}
+
+      <input
+        type="text"
+        placeholder="Photo URL"
+        value={typeof formData.photosUrl === "string" ? formData.photosUrl : ""}
+        onChange={(e) => handleInputChange("photosUrl", e.target.value)}
+        className="w-full border p-2 rounded"
+      />
+
+      <input
+        type="text"
+        placeholder="Type of Building"
+        value={formData.typeOfBuilding}
+        onChange={(e) => handleInputChange("typeOfBuilding", e.target.value)}
+        className="w-full border p-2 rounded"
+      />
+
+      <input
+        type="number"
+        min={0}
+        placeholder="Number of Properties"
+        value={formData.numberOfProperty}
+        onChange={(e) => {
+          const val = parseInt(e.target.value, 10);
+          handleInputChange("numberOfProperty", isNaN(val) ? 0 : val);
+        }}
+        className="w-full border p-2 rounded"
+      />
+
+      <h3 className="font-semibold mt-4">Location</h3>
+
+      {Object.entries(formData.location).map(([key, value]) => (
         <input
+          key={key}
           type="text"
-          value={formData.name}
-          onChange={(e) => handleFieldChange("name", e.target.value)}
-          className="w-full border p-2 rounded"
-          required
+          placeholder={key}
+          value={value}
+          onChange={(e) =>
+            handleLocationChange(key as keyof CreateBuildingDto["location"], e.target.value)
+          }
+          className="w-full border p-2 rounded mt-1"
         />
+      ))}
+
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={addProperty}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          + Add Property
+        </button>
       </div>
 
-      <div>
-        <label className="block font-semibold mb-1">Type of Building</label>
-        <input
-          type="text"
-          value={formData.typeOfBuilding}
-          onChange={(e) => handleFieldChange("typeOfBuilding", e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
-      </div>
+      {(formData.properties ?? []).map((prop, i) => (
+        <div key={i} className="border p-4 mt-4 rounded space-y-2 bg-gray-50 dark:bg-neutral-800">
+          <h4 className="font-semibold">Property #{i + 1}</h4>
 
-      <div>
-        <label className="block font-semibold mb-1">Photo URL</label>
-        <input
-          type="text"
-          value={formData.photosUrl}
-          onChange={(e) => handleFieldChange("photosUrl", e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
+          <input
+            type="text"
+            placeholder="Apartment Number"
+            value={prop.apartmentNumber}
+            onChange={(e) => updateProperty(i, "apartmentNumber", e.target.value)}
+            className="w-full border p-2 rounded"
+          />
 
-      <fieldset className="border rounded p-4">
-        <legend className="font-semibold mb-2">Location</legend>
-        {(["address", "city", "state", "country", "postalCode"] as (keyof LocationDto)[]).map((field) => (
-          <div key={field} className="mb-3">
-            <label className="block capitalize mb-1">{field}</label>
-            <input
-              type="text"
-              value={formData.location[field]}
-              onChange={(e) => handleLocationChange(field, e.target.value)}
-              className="w-full border p-2 rounded"
-              required
-            />
-          </div>
-        ))}
-      </fieldset>
+          <input
+            type="number"
+            min={0}
+            placeholder="Rooms"
+            value={prop.numberOfRooms}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10);
+              updateProperty(i, "numberOfRooms", isNaN(val) ? 0 : val);
+            }}
+            className="w-full border p-2 rounded"
+          />
 
-      <div>
-        <label className="block font-semibold mb-1">Number of Properties</label>
-        <input
-          type="number"
-          min={0}
-          value={formData.numberOfProperty === 0 ? "" : formData.numberOfProperty}
-          onChange={(e) => handlePropertyCountChange(Number(e.target.value))}
-          className="w-full border p-2 rounded"
-        />
-      </div>
+          <input
+            type="number"
+            min={0}
+            placeholder="Bathrooms"
+            value={prop.numberOfBathrooms}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10);
+              updateProperty(i, "numberOfBathrooms", isNaN(val) ? 0 : val);
+            }}
+            className="w-full border p-2 rounded"
+          />
 
-      <fieldset className="border rounded p-4">
-        <legend className="font-semibold mb-2">Properties</legend>
-        {formData.properties?.map((prop, i) => (
-          <div key={i} className="border p-3 rounded mb-4 relative bg-gray-50 dark:bg-neutral-800">
-            <button
-              type="button"
-              onClick={() => removeProperty(i)}
-              className="absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold"
-            >
-              ×
-            </button>
+          <input
+            type="number"
+            min={0}
+            placeholder="Size (sqft)"
+            value={prop.size}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              updateProperty(i, "size", isNaN(val) ? 0 : val);
+            }}
+            className="w-full border p-2 rounded"
+          />
 
-            <div className="mb-2">
-              <label className="block mb-1 font-semibold">Apartment Number</label>
-              <input
-                type="text"
-                value={prop.apartmentNumber}
-                onChange={(e) => updateProperty(i, "apartmentNumber", e.target.value)}
-                className="w-full border p-2 rounded"
-              />
-            </div>
+          <h5 className="font-semibold mt-2">Lease</h5>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block mb-1 font-semibold">Rooms</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={prop.numberOfRooms}
-                  onChange={(e) => updateProperty(i, "numberOfRooms", Number(e.target.value))}
-                  className="w-full border p-2 rounded"
-                />
-              </div>
-              <div>
-                <label className="block mb-1 font-semibold">Bathrooms</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={prop.numberOfBathrooms}
-                  onChange={(e) => updateProperty(i, "numberOfBathrooms", Number(e.target.value))}
-                  className="w-full border p-2 rounded"
-                />
-              </div>
-              <div>
-                <label className="block mb-1 font-semibold">Size (sq ft)</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={prop.size}
-                  onChange={(e) => updateProperty(i, "size", Number(e.target.value))}
-                  className="w-full border p-2 rounded"
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </fieldset>
+          <input
+            type="date"
+            value={prop.lease?.startDate?.slice(0, 10) ?? ""}
+            onChange={(e) => updateLease(i, "startDate", e.target.value)}
+            className="w-full border p-2 rounded"
+          />
 
-      <div className="flex justify-end space-x-2 mt-6">
+          <input
+            type="date"
+            value={prop.lease?.endDate?.slice(0, 10) ?? ""}
+            onChange={(e) => updateLease(i, "endDate", e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+
+          <input
+            type="number"
+            placeholder="Deposit"
+            value={prop.lease?.deposit ?? ""}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              updateLease(i, "deposit", isNaN(val) ? 0 : val);
+            }}
+            className="w-full border p-2 rounded"
+          />
+
+          <input
+            type="text"
+            placeholder="Type of Lease"
+            value={prop.lease?.typeOfLease ?? ""}
+            onChange={(e) => updateLease(i, "typeOfLease", e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+
+          <input
+            type="number"
+            min={1}
+            max={28}
+            placeholder="Rent Due Day (1–28)"
+            value={prop.lease?.rentDueDateEachMonth ?? ""}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10);
+              updateLease(i, "rentDueDateEachMonth", isNaN(val) ? 1 : val);
+            }}
+            className="w-full border p-2 rounded"
+          />
+
+          <input
+            type="number"
+            placeholder="Monthly Price"
+            value={prop.lease?.monthlyPrice ?? ""}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              updateLease(i, "monthlyPrice", isNaN(val) ? 0 : val);
+            }}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+      ))}
+
+      <div className="flex justify-between mt-6">
         <button
           type="button"
           onClick={onCancel}
@@ -260,17 +325,11 @@ export const BuildingCreateForm: React.FC<BuildingCreateFormProps> = ({ onSubmit
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
+          className="px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white text-sm"
         >
-          {isLoading ? "Creating..." : "Submit"}
+          {isLoading ? "Creating..." : "Create"}
         </button>
       </div>
-
-      {error && (
-        <p className="text-red-600 mt-2">
-          {(error as any).data?.message || "Error creating building"}
-        </p>
-      )}
     </form>
   );
 };
