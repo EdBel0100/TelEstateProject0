@@ -130,9 +130,9 @@ model PaymentPlan {
   paymentDate DateTime
 
   leaseId     Int
-  tenantId    Int  @unique  
+  tenantCognitoId    String  @unique  
   lease       Lease     @relation(fields: [leaseId], references: [id], onDelete: Cascade)
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant      Tenant    @relation(fields: [tenantCognitoId], references: [cognitoId], onDelete: Cascade)
 
   payments    Payment[] 
 }

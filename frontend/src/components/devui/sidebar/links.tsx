@@ -57,7 +57,7 @@ export const mainLinksLandlord = [
     },
     {
       label: "Payments",
-      href: "/tenantPayments",
+      href: "/payments",
       icon: <IconCreditCard className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />,
     },
     {

@@ -25,7 +25,7 @@ export class PropertyService {
           some: { cognitoId: tenantCognitoId },
         },
       },
-      include: { tenants: true, building:{ include:{location:true}} },
+      include: { lease:true, tenants: true, building:{ include:{location:true}} },
     });
   
     if (!property) {
