@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 export class PaymentsService {
   //likely the most complicated method
   
+  
   //this method will get the price the tenants are paying first
   //then this data will be send to whatever e-transfer api we choose
   //then after the payment is made we will store this data as csv, and upload it to s3
@@ -12,6 +13,7 @@ export class PaymentsService {
   //this will have an insane ammount of computation, it may need very strong infrastructure
   //there should also be a autopay option
   createPaymentForTenant(){
+  
 
   }
 
@@ -37,6 +39,7 @@ export class PaymentsService {
 
 
   }
+
 
 
 }
