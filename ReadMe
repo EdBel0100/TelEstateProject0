@@ -1,10 +1,43 @@
-To run the project, you may run the "pnpm run dev" at the root of the project.
-The root should display something like :"edouardbelair@Edouards-MBP-2 Project0 %"
+# Frontend
 
+[svg](https://github.com/EdBel0100/TelEstateProject0#frontend)
 
-This is for the dockerized backend, it will be used for the ECS deployment
-To build the backend:
-docker build -f backend/Dockerfile -t nest-backend .
-To run the backend:
-docker run -p 3001:3001 nest-backend
+This is the frontend and it is powered by NextJs/React. The goal of the frontend is to provide landlords with an easy way to manage their properties, tenants and other information.
 
+## Tech Stack
+
+[svg](https://github.com/EdBel0100/TelEstateProject0#tech-stack)
+
+* **NextJs & React** - Web application development
+* **TypeScript** - Type safety and development
+* **Tailwind CSS** - Styling and UI development
+
+---
+
+## BACKEND
+
+[svg](https://github.com/EdBel0100/TelEstateProject0#backend)
+
+The backend uses the MVC design pattern and uses
+
+## TechStack
+
+[svg](https://github.com/EdBel0100/TelEstateProject0#techstack)
+
+* **NestJs** - The actual backend utilizing the MVC design pattern
+* **Prisma** - Prisma is the object relational mapper allowing easy communication between the backend and the database
+* **Postgres** - Postgres is the database
+
+## Extra
+
+[svg](https://github.com/EdBel0100/TelEstateProject0#extra)
+
+* **Guards** - I used NestJs' guards to secure the backend and protect the different routes
+
+---
+
+## Infrastructures
+
+[svg](https://github.com/EdBel0100/TelEstateProject0#infrastructures)
+
+This part uses AWS CDK to build the infrastructures needed to host this project.
