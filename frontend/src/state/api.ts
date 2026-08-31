@@ -26,7 +26,7 @@ import { GetConversationByManagerDto } from "@DTO/conversation-dto/get-conversat
 import { GetTenantManagerAndProperty } from '@DTO/tenant-dto/get-tenant-manager-and-property.dto';
 import { PaymentPlanCoherenceDto } from "@DTO/payment-plan-dto/get-manager-payment-coherence-per-property.dto"
 import { GetPropertyForTenant } from "@DTO/property-dto/get-property-for-tenant.dto";
-
+import { lookupConversationBytenantInputDto, lookupConversationBytenantOutputDto } from "@DTO/conversation-dto/lookup-converstion-by-tenant.dto";
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -79,6 +79,15 @@ export const api = createApi({
         params: { managerCognitoId },
       }),
     }),
+
+    getConversationByTenantName: build.query<lookupConversationBytenantOutputDto[], lookupConversationBytenantInputDto>({
+      query: ({ tenantFirstName, tenantLastName }) => ({
+        url: "/conversations/manager/lookup",
+        method: "GET",
+        params: { input: JSON.stringify({ tenantFirstName, tenantLastName }) }
+      }),
+    }),
+
     getConversationByTenant: build.query<GetConversationByTenantDto[], { tenantCognitoId: string }>({
       query: ({ tenantCognitoId }) => ({
         url: "/conversations/tenant",
@@ -266,5 +275,6 @@ export const {
   useCreateTenantPaymentPlanMutation,
   useUpdateTenantPaymentPlanMutation,
   useGetManagerPaymentPlanCoherenceQuery,
-  useGetTenantPaymentPlanQuery
+  useGetTenantPaymentPlanQuery,
+  useGetConversationByTenantNameQuery
 } = api;

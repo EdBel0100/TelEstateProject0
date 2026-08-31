@@ -4,6 +4,7 @@ import { Prisma } from '@database/generated';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from '@guards/roles.guard';
 import { Roles } from '@guards/roles.decorator';
+import { lookupConversationBytenantOutputDto, lookupConversationBytenantInputDto } from '@DTO/conversation-dto/lookup-converstion-by-tenant.dto';
 
 
 
@@ -34,6 +35,13 @@ export class ConversationsController {
   @Delete(`/manager/:id`)
   deleteConversation(@Param("id") id:number){
     return this.conversationsService.deleteConversation(Number(id))
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("manager")
+  @Get("/manager/lookup")
+  lookupConverstaion(@Query("input") input:lookupConversationBytenantInputDto ) {
+    return this.conversationsService.lookupConversationByTenant(input)
   }
 
 

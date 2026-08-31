@@ -8,13 +8,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageCircle, Plus, Trash2 } from "lucide-react";
+import { MessageCircle, Plus, Trash2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GetConversationByManagerDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto";
 
 import {
   useDeleteConversationMutation,
   useGetConversationByManagerQuery,
+  useGetConversationByTenantNameQuery,
 } from "@/state/api";
 
 import { CreateConversationModal } from "./CreateConversationModal";
@@ -41,11 +42,35 @@ export const ConversationList = ({
   const { refetch } = useGetConversationByManagerQuery({ managerCognitoId });
   const [deleteConversation] = useDeleteConversationMutation();
 
+  // Lookup state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [lookupTriggered, setLookupTriggered] = useState(false);
+
+  const {
+    data: lookupResults,
+    isFetching: isLookingUp,
+    isError: isLookupError,
+  } = useGetConversationByTenantNameQuery(
+    { tenantFirstName: firstName, tenantLastName: lastName },
+    { skip: !lookupTriggered || (!firstName && !lastName) }
+  );
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<{
     id: number;
     name: string;
   } | null>(null);
+
+  const handleLookup = () => {
+    if (firstName || lastName) setLookupTriggered(true);
+  };
+
+  const handleClearLookup = () => {
+    setFirstName("");
+    setLastName("");
+    setLookupTriggered(false);
+  };
 
   const formatParticipantName = (conversation: GetConversationByManagerDto) => {
     if (conversation.tenant) {
@@ -71,18 +96,81 @@ export const ConversationList = ({
     }
   };
 
+  // Use lookup results if a search is active, otherwise use passed-in conversations
+  const displayedConversations =
+    lookupTriggered && lookupResults ? lookupResults : conversations;
+  const displayIsLoading = lookupTriggered ? isLookingUp : isLoading;
+  const displayError = lookupTriggered ? isLookupError : error;
+
   return (
     <>
       <aside className="w-[320px] h-full border-r overflow-y-auto p-4 bg-white flex flex-col">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="mb-4 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow hover:bg-blue-700 transition"
+          className="mb-3 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow hover:bg-blue-700 transition"
         >
           <Plus className="w-5 h-5" />
           Create Conversation
         </button>
 
-        {isLoading ? (
+        {/* Lookup bar */}
+        <div className="mb-4 flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="First name"
+              value={firstName}
+              onChange={(e) => {
+                setFirstName(e.target.value);
+                setLookupTriggered(false);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+              className="flex-1 min-w-0 border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <input
+              type="text"
+              placeholder="Last name"
+              value={lastName}
+              onChange={(e) => {
+                setLastName(e.target.value);
+                setLookupTriggered(false);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+              className="flex-1 min-w-0 border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleLookup}
+              disabled={!firstName && !lastName}
+              className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Search className="w-4 h-4" />
+              Search
+            </button>
+            {lookupTriggered && (
+              <button
+                onClick={handleClearLookup}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 hover:text-red-500 transition"
+              >
+                <X className="w-4 h-4" />
+                Clear
+              </button>
+            )}
+          </div>
+          {lookupTriggered && (
+            <p className="text-xs text-gray-400">
+              {isLookingUp
+                ? "Searching..."
+                : isLookupError
+                ? "Search failed."
+                : `${lookupResults?.length ?? 0} result(s) for "${firstName} ${lastName}"`}
+            </p>
+          )}
+        </div>
+
+        {/* Conversation list */}
+        {displayIsLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="mb-4">
               <CardContent className="space-y-2 p-4">
@@ -91,12 +179,12 @@ export const ConversationList = ({
               </CardContent>
             </Card>
           ))
-        ) : error ? (
+        ) : displayError ? (
           <p className="text-red-500">Error loading conversations.</p>
-        ) : conversations.length === 0 ? (
+        ) : displayedConversations.length === 0 ? (
           <p className="text-gray-500">No conversations found.</p>
         ) : (
-          conversations.map((conversation) => (
+          displayedConversations.map((conversation) => (
             <Card
               key={conversation.id}
               onClick={() => onSelect(conversation.id)}
