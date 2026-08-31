@@ -31,11 +31,11 @@ model Tenant {
   lastName    String
   phoneNumber String
 
-  propertyId  Int?    
+  propertyId  Int    
   property    Property? @relation(fields: [propertyId], references: [id])
   tickets     Tickets[]
   conversations Conversation[]
-  payment     Payment? 
+  paymenttemplate     PaymentPlan? 
 }
 
 
@@ -65,7 +65,7 @@ model Building {
   locationId Int @unique
 
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  manager    Manager @relation(fields: [managerCognitoId], references: [cognitoId], onDelete: Cascade)
+  manager    Manager @relation(fields: [managerCognitoId], references: [cognitoId])
   properties Property[]
 }
 
@@ -91,7 +91,7 @@ model Property {
   managerCognitoId  String
 
   building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-  manager  Manager  @relation(fields: [managerCognitoId], references: [cognitoId], onDelete: Cascade)
+  manager  Manager  @relation(fields: [managerCognitoId], references: [cognitoId])
   tickets  Tickets[]
   lease    Lease?  
   tenants  Tenant[] 
@@ -115,25 +115,39 @@ model Lease {
   startDate    DateTime
   endDate      DateTime
   deposit      Float
-  rentDueDate  DateTime  
+  typeOfLease  String
+  monthlyPrice Int
+  rentDueDateEachMonth Int 
   propertyId   Int       @unique
 
-  property     Property  @relation(fields: [propertyId], references: [id])
-  payments     Payment[]
+  property     Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  paymenttemplate PaymentPlan[]
+}
+
+model PaymentPlan {
+  id          Int       @id @default(autoincrement())
+  setPrice    Int
+  paymentDate DateTime
+  autoPayment Boolean
+
+  leaseId     Int
+  tenantCognitoId    String  @unique  
+  lease       Lease     @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  tenant      Tenant    @relation(fields: [tenantCognitoId], references: [cognitoId], onDelete: Cascade)
+
+  payments    Payment[] 
 }
 
 model Payment {
-  id            Int      @id @default(autoincrement())
-  amountDue     Float
-  amountPaid    Float
-  paymentDate   DateTime
-  paymentStatus String
+  id          Int       @id @default(autoincrement())
+  amountPaid  Int
+  paymentDate DateTime
 
-  leaseId       Int
-  tenantId      Int   @unique 
-  lease         Lease  @relation(fields: [leaseId], references: [id], onDelete: Cascade)
-  tenant        Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  templateId  Int
+
+  template    PaymentPlan? @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }
+
 
 model Conversation {
   id                Int           @id @default(autoincrement())

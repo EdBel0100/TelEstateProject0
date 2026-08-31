@@ -1,5 +1,23 @@
-import type { Messages } from '@database/generated';
+import { IsInt, IsString, IsDate } from 'class-validator';
 
-export type MessageDto = Messages; // or select a subset of fields if you want
+export class MessageDto {
+  @IsInt()
+  id: number;
+
+  @IsString()
+  senderType: string;
+
+  @IsString()
+  senderCognitoId: string;
+
+  @IsString()
+  content: string;
+
+  @IsDate()
+  createdAt: Date;
+
+  @IsInt()
+  conversationId: number;
+}
 
 export type GetMessagesByConversationDto = MessageDto[];

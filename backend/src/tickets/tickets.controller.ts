@@ -14,7 +14,7 @@ export class TicketsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('tenant')
   @Post("tenant")
-  async CreateForTenant(
+    CreateForTenant(
     @Body() createTicketDto: CreateTicketForTenantDto) {
     return this.ticketsService.CreateForTenant(createTicketDto);
   }

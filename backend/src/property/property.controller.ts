@@ -1,6 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { Prisma } from '@database/generated';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { Roles } from '@guards/roles.decorator';
+import { RolesGuard } from '@guards/roles.guard';
+import { CurrentUser } from '@guards/current-user.decorator';
+
 
 @Controller('property')
 export class PropertyController {
@@ -16,9 +22,11 @@ export class PropertyController {
     return this.propertyService.findAll();
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("tenant")
   @Get('/tenant')
-  getPropertyForTenant(@Query('tenantCognitoId') tenantCognitoId: string) {
-    return this.propertyService.getPropertyForTenant(tenantCognitoId);
+  getPropertyForTenant(@CurrentUser() user: { cognitoId: string }) {
+    return this.propertyService.getPropertyForTenant(user.cognitoId);
   }
 
   @Patch(':id')

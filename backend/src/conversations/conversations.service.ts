@@ -3,6 +3,7 @@ import { Injectable,Logger } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { GetConversationByTenantDto } from '@DTO/conversation-dto/get-conversation-by-tenant.dto';
 import {GetConversationByManagerDto} from "@DTO/conversation-dto/get-conversations-by-manager.dto"
+import { lookupConversationBytenantOutputDto, lookupConversationBytenantInputDto } from '@DTO/conversation-dto/lookup-converstion-by-tenant.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -33,6 +34,16 @@ export class ConversationsService {
         tenant: true,
       },
     });
+  }
+
+  lookupConversationByTenant(input:lookupConversationBytenantInputDto): Promise<lookupConversationBytenantOutputDto[]> {
+    return this.databaseService.conversation.findMany({
+      where: {tenant:{firstName:input.tenantFirstName, lastName:input.tenantLastName}},
+      include: {
+        messages: true,
+        tenant:true 
+      }
+    })
   }
 
   getConversationsByTenant(tenantCognitoId: string): Promise<GetConversationByTenantDto[]> {

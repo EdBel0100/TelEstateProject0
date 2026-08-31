@@ -8,6 +8,7 @@ import {
   Messages,
   Property,
   Building,
+  PaymentPlan
 } from "@database/generated";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
@@ -23,7 +24,9 @@ import { UpdateBuildingDto } from "@DTO/building-dto/update-building.dto";
 import { GetConversationByTenantDto } from "@DTO/conversation-dto/get-conversation-by-tenant.dto";
 import { GetConversationByManagerDto } from "@DTO/conversation-dto/get-conversations-by-manager.dto";
 import { GetTenantManagerAndProperty } from '@DTO/tenant-dto/get-tenant-manager-and-property.dto';
-
+import { PaymentPlanCoherenceDto } from "@DTO/payment-plan-dto/get-manager-payment-coherence-per-property.dto"
+import { GetPropertyForTenant } from "@DTO/property-dto/get-property-for-tenant.dto";
+import { lookupConversationBytenantInputDto, lookupConversationBytenantOutputDto } from "@DTO/conversation-dto/lookup-converstion-by-tenant.dto";
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -76,6 +79,15 @@ export const api = createApi({
         params: { managerCognitoId },
       }),
     }),
+
+    getConversationByTenantName: build.query<lookupConversationBytenantOutputDto[], lookupConversationBytenantInputDto>({
+      query: ({ tenantFirstName, tenantLastName }) => ({
+        url: "/conversations/manager/lookup",
+        method: "GET",
+        params: { input: JSON.stringify({ tenantFirstName, tenantLastName }) }
+      }),
+    }),
+
     getConversationByTenant: build.query<GetConversationByTenantDto[], { tenantCognitoId: string }>({
       query: ({ tenantCognitoId }) => ({
         url: "/conversations/tenant",
@@ -124,11 +136,10 @@ export const api = createApi({
     }),
 
     // --------- PROPERTY ---------
-    getPropertyForTenant: build.query<Property, { tenantCognitoId: string }>({
-      query: ({ tenantCognitoId }) => ({
+    getPropertyForTenant: build.query<GetPropertyForTenant, void>({
+      query: () => ({
         url: `/property/tenant`,
         method: "GET",
-        params: { tenantCognitoId },
       }),
     }),
 
@@ -201,6 +212,42 @@ export const api = createApi({
         body,
       }),
     }),
+
+    // --------- PAYMENTPLANS ---------
+    createTenantPaymentPlan: build.mutation<void, { setPrice: number }>({
+      query: ({ setPrice }) => ({
+        url: "/paymentplans/tenant",
+        method: "POST",
+        body: { setPrice },
+      }),
+    }),
+
+    getTenantPaymentPlan: build.query<PaymentPlan, void>({
+      query: () => ({
+        url: "/paymentplans/tenant",
+        method: "GET",
+      }),
+    }),
+
+    // [PATCH] /paymentplan/tenant
+    updateTenantPaymentPlan: build.mutation<void, { setPrice: number }>({
+      query: ({ setPrice }) => ({
+        url: "/paymentplans/tenant",
+        method: "PATCH",
+        body: { setPrice },
+      }),
+    }),
+
+    // [GET] /paymentplan/manager/coherence
+    getManagerPaymentPlanCoherence: build.query<PaymentPlanCoherenceDto[], void>({
+      query: () => ({
+        url: "/paymentplans/manager/coherence",
+        method: "GET",
+      }),
+    }),
+
+
+
   }),
 });
 
@@ -225,4 +272,9 @@ export const {
   useGetPropertyForTenantQuery,
   useCreateConversationForTenantSignupMutation,
   useLazyGetTenantManagerQuery,
+  useCreateTenantPaymentPlanMutation,
+  useUpdateTenantPaymentPlanMutation,
+  useGetManagerPaymentPlanCoherenceQuery,
+  useGetTenantPaymentPlanQuery,
+  useGetConversationByTenantNameQuery
 } = api;

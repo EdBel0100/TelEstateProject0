@@ -15,6 +15,7 @@ import { ManagerModule } from './manager/manager.module';
 import { BuildingModule } from './building/building.module';
 import { PropertyModule } from './property/property.module';
 import { LocationModule } from './location/location.module';
+import { PaymentplansModule } from './paymentplans/paymentplans.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { LocationModule } from './location/location.module';
     BuildingModule,
     PropertyModule,
     LocationModule,
+    PaymentplansModule,
   ],
   controllers: [AppController],
   providers: [AppService],
