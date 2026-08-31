@@ -1,12 +1,8 @@
 # Frontend
 
-[svg](https://github.com/EdBel0100/TelEstateProject0#frontend)
-
 This is the frontend and it is powered by NextJs/React. The goal of the frontend is to provide landlords with an easy way to manage their properties, tenants and other information.
 
 ## Tech Stack
-
-[svg](https://github.com/EdBel0100/TelEstateProject0#tech-stack)
 
 * **NextJs & React** - Web application development
 * **TypeScript** - Type safety and development
@@ -16,13 +12,9 @@ This is the frontend and it is powered by NextJs/React. The goal of the frontend
 
 ## BACKEND
 
-[svg](https://github.com/EdBel0100/TelEstateProject0#backend)
-
 The backend uses the MVC design pattern and uses
 
 ## TechStack
-
-[svg](https://github.com/EdBel0100/TelEstateProject0#techstack)
 
 * **NestJs** - The actual backend utilizing the MVC design pattern
 * **Prisma** - Prisma is the object relational mapper allowing easy communication between the backend and the database
@@ -30,14 +22,10 @@ The backend uses the MVC design pattern and uses
 
 ## Extra
 
-[svg](https://github.com/EdBel0100/TelEstateProject0#extra)
-
 * **Guards** - I used NestJs' guards to secure the backend and protect the different routes
 
 ---
 
 ## Infrastructures
-
-[svg](https://github.com/EdBel0100/TelEstateProject0#infrastructures)
 
 This part uses AWS CDK to build the infrastructures needed to host this project.
